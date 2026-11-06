@@ -1,0 +1,205 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1960 750" width="1960" height="750" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+    <marker id="arrow-err" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#c0392b"/>
+    </marker>
+  </defs>
+
+  <rect width="1960" height="750" fill="#ffffff"/>
+
+  <!-- Network useradmin -->
+  <rect x="60" y="40" width="1800" height="640" rx="10" fill="#f4f6fa" stroke="#3b4a6b" stroke-width="2" stroke-dasharray="8 4"/>
+  <text x="80" y="68" font-size="18" font-weight="bold" fill="#3b4a6b">useradmin</text>
+  <text x="80" y="88" font-size="11" fill="#8a96b0">gofbpsrvls/pkg/users</text>
+  <text x="80" y="104" font-size="12" font-style="italic" fill="#666">creates, updates and deletes users</text>
+
+  <!-- Brick routeaction -->
+  <rect x="200" y="200" width="290" height="156" rx="6" fill="#ffffff" stroke="#222" stroke-width="2"/>
+  <text x="345" y="242" font-size="15" font-weight="bold" text-anchor="middle">routeaction</text>
+  <text x="345" y="260" font-size="12" fill="#666" text-anchor="middle">RouteAction</text>
+  <text x="345" y="276" font-size="10" fill="#999" text-anchor="middle">gofbpsrvls/pkg/users</text>
+  <text x="345" y="292" font-size="10" fill="#999" font-family="monospace" text-anchor="middle">RouteAction()</text>
+
+  <!-- Brick checknewuser -->
+  <rect x="610" y="200" width="290" height="110" rx="6" fill="#ffffff" stroke="#222" stroke-width="2"/>
+  <text x="755" y="242" font-size="15" font-weight="bold" text-anchor="middle">checknewuser</text>
+  <text x="755" y="260" font-size="12" fill="#666" text-anchor="middle">CheckNewUser</text>
+  <text x="755" y="276" font-size="10" fill="#999" text-anchor="middle">gofbpsrvls/pkg/users</text>
+  <text x="755" y="292" font-size="10" fill="#999" font-family="monospace" text-anchor="middle">CheckNewUser()</text>
+
+  <!-- Brick hashnew -->
+  <rect x="1020" y="200" width="290" height="110" rx="6" fill="#ffffff" stroke="#222" stroke-width="2"/>
+  <text x="1165" y="242" font-size="15" font-weight="bold" text-anchor="middle">hashnew</text>
+  <text x="1165" y="260" font-size="12" fill="#666" text-anchor="middle">HashPassword</text>
+  <text x="1165" y="276" font-size="10" fill="#999" text-anchor="middle">gofbpsrvls/pkg/users</text>
+  <text x="1165" y="292" font-size="10" fill="#999" font-family="monospace" text-anchor="middle">HashPassword()</text>
+
+  <!-- Brick insertuser -->
+  <rect x="1430" y="200" width="290" height="110" rx="6" fill="#ffffff" stroke="#222" stroke-width="2"/>
+  <text x="1575" y="242" font-size="15" font-weight="bold" text-anchor="middle">insertuser</text>
+  <text x="1575" y="260" font-size="12" fill="#666" text-anchor="middle">InsertUser</text>
+  <text x="1575" y="276" font-size="10" fill="#999" text-anchor="middle">gofbpsrvls/pkg/users</text>
+  <text x="1575" y="292" font-size="10" fill="#999" font-family="monospace" text-anchor="middle">InsertUser(st)</text>
+
+  <!-- Brick checkupdate -->
+  <rect x="610" y="350" width="290" height="110" rx="6" fill="#ffffff" stroke="#222" stroke-width="2"/>
+  <text x="755" y="392" font-size="15" font-weight="bold" text-anchor="middle">checkupdate</text>
+  <text x="755" y="410" font-size="12" fill="#666" text-anchor="middle">CheckUpdate</text>
+  <text x="755" y="426" font-size="10" fill="#999" text-anchor="middle">gofbpsrvls/pkg/users</text>
+  <text x="755" y="442" font-size="10" fill="#999" font-family="monospace" text-anchor="middle">CheckUpdate(st)</text>
+
+  <!-- Brick hashupdate -->
+  <rect x="1020" y="350" width="290" height="110" rx="6" fill="#ffffff" stroke="#222" stroke-width="2"/>
+  <text x="1165" y="392" font-size="15" font-weight="bold" text-anchor="middle">hashupdate</text>
+  <text x="1165" y="410" font-size="12" fill="#666" text-anchor="middle">HashPassword</text>
+  <text x="1165" y="426" font-size="10" fill="#999" text-anchor="middle">gofbpsrvls/pkg/users</text>
+  <text x="1165" y="442" font-size="10" fill="#999" font-family="monospace" text-anchor="middle">HashPassword()</text>
+
+  <!-- Brick updateuser -->
+  <rect x="1430" y="350" width="290" height="110" rx="6" fill="#ffffff" stroke="#222" stroke-width="2"/>
+  <text x="1575" y="392" font-size="15" font-weight="bold" text-anchor="middle">updateuser</text>
+  <text x="1575" y="410" font-size="12" fill="#666" text-anchor="middle">UpdateUser</text>
+  <text x="1575" y="426" font-size="10" fill="#999" text-anchor="middle">gofbpsrvls/pkg/users</text>
+  <text x="1575" y="442" font-size="10" fill="#999" font-family="monospace" text-anchor="middle">UpdateUser(st)</text>
+
+  <!-- Brick deleteuser -->
+  <rect x="610" y="500" width="290" height="110" rx="6" fill="#ffffff" stroke="#222" stroke-width="2"/>
+  <text x="755" y="542" font-size="15" font-weight="bold" text-anchor="middle">deleteuser</text>
+  <text x="755" y="560" font-size="12" fill="#666" text-anchor="middle">DeleteUser</text>
+  <text x="755" y="576" font-size="10" fill="#999" text-anchor="middle">gofbpsrvls/pkg/users</text>
+  <text x="755" y="592" font-size="10" fill="#999" font-family="monospace" text-anchor="middle">DeleteUser(st)</text>
+
+  <!-- Connections -->
+  <!-- Netz-Inport -> routeaction.Inport -->
+  <path d="M69,278 L190,278" stroke="#444" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <!-- routeaction.Create -> checknewuser.Inport -->
+  <path d="M499,252 C549,252 549,255 600,255" stroke="#444" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <!-- checknewuser.Success -> hashnew.Inport -->
+  <path d="M909,237 C959,237 959,255 1010,255" stroke="#444" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <!-- hashnew.Success -> insertuser.Inport -->
+  <path d="M1319,237 C1369,237 1369,255 1420,255" stroke="#444" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <!-- routeaction.Update -> checkupdate.Inport -->
+  <path d="M499,278 C549,278 549,405 600,405" stroke="#444" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <!-- checkupdate.Success -> hashupdate.Inport -->
+  <path d="M909,387 C959,387 959,405 1010,405" stroke="#444" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <!-- hashupdate.Success -> updateuser.Inport -->
+  <path d="M1319,387 C1369,387 1369,405 1420,405" stroke="#444" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <!-- routeaction.Delete -> deleteuser.Inport -->
+  <path d="M499,304 C549,304 549,555 600,555" stroke="#444" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <!-- insertuser.Success -> Netz-Success -->
+  <path d="M1729,237 L1850,237" stroke="#444" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <!-- updateuser.Success -> Netz-Success -->
+  <path d="M1729,387 L1770,387 C1810,387 1810,237 1850,237" stroke="#444" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <!-- deleteuser.Success -> Netz-Success -->
+  <path d="M909,537 L1770,537 C1810,537 1810,237 1850,237" stroke="#444" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <!-- routeaction.Error -> Netz-Error -->
+  <path d="M499,330 C539,330 539,650 579,650 L1850,650" stroke="#c0392b" stroke-width="1.5" fill="none" marker-end="url(#arrow-err)"/>
+  <!-- checknewuser.Error -> Netz-Error -->
+  <path d="M909,273 C949,273 949,650 989,650 L1850,650" stroke="#c0392b" stroke-width="1.5" fill="none" marker-end="url(#arrow-err)"/>
+  <!-- hashnew.Error -> Netz-Error -->
+  <path d="M1319,273 C1359,273 1359,650 1399,650 L1850,650" stroke="#c0392b" stroke-width="1.5" fill="none" marker-end="url(#arrow-err)"/>
+  <!-- insertuser.Error -> Netz-Error -->
+  <path d="M1729,273 C1769,273 1769,650 1809,650 L1850,650" stroke="#c0392b" stroke-width="1.5" fill="none" marker-end="url(#arrow-err)"/>
+  <!-- checkupdate.Error -> Netz-Error -->
+  <path d="M909,423 C949,423 949,650 989,650 L1850,650" stroke="#c0392b" stroke-width="1.5" fill="none" marker-end="url(#arrow-err)"/>
+  <!-- hashupdate.Error -> Netz-Error -->
+  <path d="M1319,423 C1359,423 1359,650 1399,650 L1850,650" stroke="#c0392b" stroke-width="1.5" fill="none" marker-end="url(#arrow-err)"/>
+  <!-- updateuser.Error -> Netz-Error -->
+  <path d="M1729,423 C1769,423 1769,650 1809,650 L1850,650" stroke="#c0392b" stroke-width="1.5" fill="none" marker-end="url(#arrow-err)"/>
+  <!-- deleteuser.Error -> Netz-Error -->
+  <path d="M909,573 C949,573 949,650 989,650 L1850,650" stroke="#c0392b" stroke-width="1.5" fill="none" marker-end="url(#arrow-err)"/>
+
+  <!-- Ports: Network -->
+  <circle cx="60" cy="278" r="9" fill="#4a90d9" stroke="#1f4e85" stroke-width="2"/>
+  <text x="52" y="261" font-size="12" text-anchor="middle">Inport</text>
+  <circle cx="1860" cy="237" r="9" fill="#e8964a" stroke="#9a5418" stroke-width="2"/>
+  <text x="1868" y="220" font-size="12" text-anchor="middle">Success</text>
+  <circle cx="1860" cy="650" r="9" fill="#e06666" stroke="#8e2b27" stroke-width="2"/>
+  <text x="1868" y="633" font-size="12" text-anchor="middle">Error</text>
+
+  <!-- Ports: routeaction -->
+  <circle cx="200" cy="278" r="9" fill="#4a90d9" stroke="#1f4e85" stroke-width="2"/>
+  <text x="187" y="268" font-size="11" text-anchor="end">Inport</text>
+  <!-- routeaction.Success nicht verbunden -->
+  <circle cx="490" cy="226" r="9" fill="#e8964a" stroke="#9a5418" stroke-width="2"/>
+  <text x="503" y="218" font-size="11">Success</text>
+  <circle cx="490" cy="252" r="9" fill="#e8964a" stroke="#9a5418" stroke-width="2"/>
+  <text x="503" y="244" font-size="11">Create</text>
+  <circle cx="490" cy="278" r="9" fill="#e8964a" stroke="#9a5418" stroke-width="2"/>
+  <text x="503" y="270" font-size="11">Update</text>
+  <circle cx="490" cy="304" r="9" fill="#e8964a" stroke="#9a5418" stroke-width="2"/>
+  <text x="503" y="296" font-size="11">Delete</text>
+  <circle cx="490" cy="330" r="9" fill="#e06666" stroke="#8e2b27" stroke-width="2"/>
+  <text x="503" y="322" font-size="11">Error</text>
+
+  <!-- Ports: checknewuser -->
+  <circle cx="610" cy="255" r="9" fill="#4a90d9" stroke="#1f4e85" stroke-width="2"/>
+  <text x="597" y="245" font-size="11" text-anchor="end">Inport</text>
+  <circle cx="900" cy="237" r="9" fill="#e8964a" stroke="#9a5418" stroke-width="2"/>
+  <text x="913" y="229" font-size="11">Success</text>
+  <circle cx="900" cy="273" r="9" fill="#e06666" stroke="#8e2b27" stroke-width="2"/>
+  <text x="913" y="265" font-size="11">Error</text>
+
+  <!-- Ports: hashnew -->
+  <circle cx="1020" cy="255" r="9" fill="#4a90d9" stroke="#1f4e85" stroke-width="2"/>
+  <text x="1007" y="245" font-size="11" text-anchor="end">Inport</text>
+  <circle cx="1310" cy="237" r="9" fill="#e8964a" stroke="#9a5418" stroke-width="2"/>
+  <text x="1323" y="229" font-size="11">Success</text>
+  <circle cx="1310" cy="273" r="9" fill="#e06666" stroke="#8e2b27" stroke-width="2"/>
+  <text x="1323" y="265" font-size="11">Error</text>
+
+  <!-- Ports: insertuser -->
+  <circle cx="1430" cy="255" r="9" fill="#4a90d9" stroke="#1f4e85" stroke-width="2"/>
+  <text x="1417" y="245" font-size="11" text-anchor="end">Inport</text>
+  <circle cx="1720" cy="237" r="9" fill="#e8964a" stroke="#9a5418" stroke-width="2"/>
+  <text x="1733" y="229" font-size="11">Success</text>
+  <circle cx="1720" cy="273" r="9" fill="#e06666" stroke="#8e2b27" stroke-width="2"/>
+  <text x="1733" y="265" font-size="11">Error</text>
+
+  <!-- Ports: checkupdate -->
+  <circle cx="610" cy="405" r="9" fill="#4a90d9" stroke="#1f4e85" stroke-width="2"/>
+  <text x="597" y="395" font-size="11" text-anchor="end">Inport</text>
+  <circle cx="900" cy="387" r="9" fill="#e8964a" stroke="#9a5418" stroke-width="2"/>
+  <text x="913" y="379" font-size="11">Success</text>
+  <circle cx="900" cy="423" r="9" fill="#e06666" stroke="#8e2b27" stroke-width="2"/>
+  <text x="913" y="415" font-size="11">Error</text>
+
+  <!-- Ports: hashupdate -->
+  <circle cx="1020" cy="405" r="9" fill="#4a90d9" stroke="#1f4e85" stroke-width="2"/>
+  <text x="1007" y="395" font-size="11" text-anchor="end">Inport</text>
+  <circle cx="1310" cy="387" r="9" fill="#e8964a" stroke="#9a5418" stroke-width="2"/>
+  <text x="1323" y="379" font-size="11">Success</text>
+  <circle cx="1310" cy="423" r="9" fill="#e06666" stroke="#8e2b27" stroke-width="2"/>
+  <text x="1323" y="415" font-size="11">Error</text>
+
+  <!-- Ports: updateuser -->
+  <circle cx="1430" cy="405" r="9" fill="#4a90d9" stroke="#1f4e85" stroke-width="2"/>
+  <text x="1417" y="395" font-size="11" text-anchor="end">Inport</text>
+  <circle cx="1720" cy="387" r="9" fill="#e8964a" stroke="#9a5418" stroke-width="2"/>
+  <text x="1733" y="379" font-size="11">Success</text>
+  <circle cx="1720" cy="423" r="9" fill="#e06666" stroke="#8e2b27" stroke-width="2"/>
+  <text x="1733" y="415" font-size="11">Error</text>
+
+  <!-- Ports: deleteuser -->
+  <circle cx="610" cy="555" r="9" fill="#4a90d9" stroke="#1f4e85" stroke-width="2"/>
+  <text x="597" y="545" font-size="11" text-anchor="end">Inport</text>
+  <circle cx="900" cy="537" r="9" fill="#e8964a" stroke="#9a5418" stroke-width="2"/>
+  <text x="913" y="529" font-size="11">Success</text>
+  <circle cx="900" cy="573" r="9" fill="#e06666" stroke="#8e2b27" stroke-width="2"/>
+  <text x="913" y="565" font-size="11">Error</text>
+
+  <!-- Legende -->
+  <circle cx="80" cy="722" r="7" fill="#4a90d9" stroke="#1f4e85" stroke-width="2"/>
+  <text x="93" y="726" font-size="12">Inport</text>
+  <circle cx="160" cy="722" r="7" fill="#e8964a" stroke="#9a5418" stroke-width="2"/>
+  <text x="173" y="726" font-size="12">Outport</text>
+  <circle cx="250" cy="722" r="7" fill="#e06666" stroke="#8e2b27" stroke-width="2"/>
+  <text x="263" y="726" font-size="12">Error-Outport</text>
+  <rect x="360" y="714" width="22" height="16" rx="3" fill="#fff" stroke="#222" stroke-width="2"/>
+  <text x="390" y="726" font-size="12">Brick</text>
+  <rect x="440" y="714" width="22" height="16" rx="3" fill="#f4f6fa" stroke="#3b4a6b" stroke-width="2" stroke-dasharray="4 2"/>
+  <text x="470" y="726" font-size="12">Network</text>
+</svg>

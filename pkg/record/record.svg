@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1140 600" width="1140" height="600" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+    <marker id="arrow-err" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#c0392b"/>
+    </marker>
+  </defs>
+
+  <rect width="1140" height="600" fill="#ffffff"/>
+
+  <!-- Network record -->
+  <rect x="60" y="40" width="980" height="490" rx="10" fill="#f4f6fa" stroke="#3b4a6b" stroke-width="2" stroke-dasharray="8 4"/>
+  <text x="80" y="68" font-size="18" font-weight="bold" fill="#3b4a6b">record</text>
+  <text x="80" y="88" font-size="11" fill="#8a96b0">gofbpsrvls/pkg/record</text>
+  <text x="80" y="104" font-size="12" font-style="italic" fill="#666">writes Events and log records of goFBP Services to the store</text>
+
+  <!-- Brick checkevent -->
+  <rect x="200" y="200" width="290" height="110" rx="6" fill="#ffffff" stroke="#222" stroke-width="2"/>
+  <text x="345" y="242" font-size="15" font-weight="bold" text-anchor="middle">checkevent</text>
+  <text x="345" y="260" font-size="12" fill="#666" text-anchor="middle">CheckEvent</text>
+  <text x="345" y="276" font-size="10" fill="#999" text-anchor="middle">gofbpsrvls/pkg/record</text>
+  <text x="345" y="292" font-size="10" fill="#999" font-family="monospace" text-anchor="middle">CheckEvent()</text>
+
+  <!-- Brick storeevent -->
+  <rect x="610" y="200" width="290" height="110" rx="6" fill="#ffffff" stroke="#222" stroke-width="2"/>
+  <text x="755" y="242" font-size="15" font-weight="bold" text-anchor="middle">storeevent</text>
+  <text x="755" y="260" font-size="12" fill="#666" text-anchor="middle">StoreEvent</text>
+  <text x="755" y="276" font-size="10" fill="#999" text-anchor="middle">gofbpsrvls/pkg/record</text>
+  <text x="755" y="292" font-size="10" fill="#999" font-family="monospace" text-anchor="middle">StoreEvent(st)</text>
+
+  <!-- Brick checklog -->
+  <rect x="200" y="350" width="290" height="110" rx="6" fill="#ffffff" stroke="#222" stroke-width="2"/>
+  <text x="345" y="392" font-size="15" font-weight="bold" text-anchor="middle">checklog</text>
+  <text x="345" y="410" font-size="12" fill="#666" text-anchor="middle">CheckLog</text>
+  <text x="345" y="426" font-size="10" fill="#999" text-anchor="middle">gofbpsrvls/pkg/record</text>
+  <text x="345" y="442" font-size="10" fill="#999" font-family="monospace" text-anchor="middle">CheckLog()</text>
+
+  <!-- Brick storelog -->
+  <rect x="610" y="350" width="290" height="110" rx="6" fill="#ffffff" stroke="#222" stroke-width="2"/>
+  <text x="755" y="392" font-size="15" font-weight="bold" text-anchor="middle">storelog</text>
+  <text x="755" y="410" font-size="12" fill="#666" text-anchor="middle">StoreLog</text>
+  <text x="755" y="426" font-size="10" fill="#999" text-anchor="middle">gofbpsrvls/pkg/record</text>
+  <text x="755" y="442" font-size="10" fill="#999" font-family="monospace" text-anchor="middle">StoreLog(st)</text>
+
+  <!-- Connections -->
+  <!-- Netz-In -> checkevent.Inport -->
+  <path d="M69,255 L190,255" stroke="#444" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <!-- checkevent.Success -> storeevent.Inport -->
+  <path d="M499,237 C549,237 549,255 600,255" stroke="#444" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <!-- Netz-Log -> checklog.Inport -->
+  <path d="M69,405 L190,405" stroke="#444" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <!-- checklog.Success -> storelog.Inport -->
+  <path d="M499,387 C549,387 549,405 600,405" stroke="#444" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <!-- storeevent.Success -> Netz-Success -->
+  <path d="M909,237 L1030,237" stroke="#444" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <!-- storelog.Success -> Netz-Success -->
+  <path d="M909,387 L950,387 C990,387 990,237 1030,237" stroke="#444" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <!-- checkevent.Error -> Netz-Error -->
+  <path d="M499,273 C539,273 539,500 579,500 L1030,500" stroke="#c0392b" stroke-width="1.5" fill="none" marker-end="url(#arrow-err)"/>
+  <!-- storeevent.Error -> Netz-Error -->
+  <path d="M909,273 C949,273 949,500 989,500 L1030,500" stroke="#c0392b" stroke-width="1.5" fill="none" marker-end="url(#arrow-err)"/>
+  <!-- checklog.Error -> Netz-Error -->
+  <path d="M499,423 C539,423 539,500 579,500 L1030,500" stroke="#c0392b" stroke-width="1.5" fill="none" marker-end="url(#arrow-err)"/>
+  <!-- storelog.Error -> Netz-Error -->
+  <path d="M909,423 C949,423 949,500 989,500 L1030,500" stroke="#c0392b" stroke-width="1.5" fill="none" marker-end="url(#arrow-err)"/>
+
+  <!-- Ports: Network -->
+  <circle cx="60" cy="255" r="9" fill="#4a90d9" stroke="#1f4e85" stroke-width="2"/>
+  <text x="52" y="238" font-size="12" text-anchor="middle">In</text>
+  <circle cx="60" cy="405" r="9" fill="#4a90d9" stroke="#1f4e85" stroke-width="2"/>
+  <text x="52" y="388" font-size="12" text-anchor="middle">Log</text>
+  <circle cx="1040" cy="237" r="9" fill="#e8964a" stroke="#9a5418" stroke-width="2"/>
+  <text x="1048" y="220" font-size="12" text-anchor="middle">Success</text>
+  <circle cx="1040" cy="500" r="9" fill="#e06666" stroke="#8e2b27" stroke-width="2"/>
+  <text x="1048" y="483" font-size="12" text-anchor="middle">Error</text>
+
+  <!-- Ports: checkevent -->
+  <circle cx="200" cy="255" r="9" fill="#4a90d9" stroke="#1f4e85" stroke-width="2"/>
+  <text x="187" y="245" font-size="11" text-anchor="end">Inport</text>
+  <circle cx="490" cy="237" r="9" fill="#e8964a" stroke="#9a5418" stroke-width="2"/>
+  <text x="503" y="229" font-size="11">Success</text>
+  <circle cx="490" cy="273" r="9" fill="#e06666" stroke="#8e2b27" stroke-width="2"/>
+  <text x="503" y="265" font-size="11">Error</text>
+
+  <!-- Ports: storeevent -->
+  <circle cx="610" cy="255" r="9" fill="#4a90d9" stroke="#1f4e85" stroke-width="2"/>
+  <text x="597" y="245" font-size="11" text-anchor="end">Inport</text>
+  <circle cx="900" cy="237" r="9" fill="#e8964a" stroke="#9a5418" stroke-width="2"/>
+  <text x="913" y="229" font-size="11">Success</text>
+  <circle cx="900" cy="273" r="9" fill="#e06666" stroke="#8e2b27" stroke-width="2"/>
+  <text x="913" y="265" font-size="11">Error</text>
+
+  <!-- Ports: checklog -->
+  <circle cx="200" cy="405" r="9" fill="#4a90d9" stroke="#1f4e85" stroke-width="2"/>
+  <text x="187" y="395" font-size="11" text-anchor="end">Inport</text>
+  <circle cx="490" cy="387" r="9" fill="#e8964a" stroke="#9a5418" stroke-width="2"/>
+  <text x="503" y="379" font-size="11">Success</text>
+  <circle cx="490" cy="423" r="9" fill="#e06666" stroke="#8e2b27" stroke-width="2"/>
+  <text x="503" y="415" font-size="11">Error</text>
+
+  <!-- Ports: storelog -->
+  <circle cx="610" cy="405" r="9" fill="#4a90d9" stroke="#1f4e85" stroke-width="2"/>
+  <text x="597" y="395" font-size="11" text-anchor="end">Inport</text>
+  <circle cx="900" cy="387" r="9" fill="#e8964a" stroke="#9a5418" stroke-width="2"/>
+  <text x="913" y="379" font-size="11">Success</text>
+  <circle cx="900" cy="423" r="9" fill="#e06666" stroke="#8e2b27" stroke-width="2"/>
+  <text x="913" y="415" font-size="11">Error</text>
+
+  <!-- Legende -->
+  <circle cx="80" cy="572" r="7" fill="#4a90d9" stroke="#1f4e85" stroke-width="2"/>
+  <text x="93" y="576" font-size="12">Inport</text>
+  <circle cx="160" cy="572" r="7" fill="#e8964a" stroke="#9a5418" stroke-width="2"/>
+  <text x="173" y="576" font-size="12">Outport</text>
+  <circle cx="250" cy="572" r="7" fill="#e06666" stroke="#8e2b27" stroke-width="2"/>
+  <text x="263" y="576" font-size="12">Error-Outport</text>
+  <rect x="360" y="564" width="22" height="16" rx="3" fill="#fff" stroke="#222" stroke-width="2"/>
+  <text x="390" y="576" font-size="12">Brick</text>
+  <rect x="440" y="564" width="22" height="16" rx="3" fill="#f4f6fa" stroke="#3b4a6b" stroke-width="2" stroke-dasharray="4 2"/>
+  <text x="470" y="576" font-size="12">Network</text>
+</svg>

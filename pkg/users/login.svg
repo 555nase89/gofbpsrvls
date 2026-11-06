@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1550 450" width="1550" height="450" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+    <marker id="arrow-err" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#c0392b"/>
+    </marker>
+  </defs>
+
+  <rect width="1550" height="450" fill="#ffffff"/>
+
+  <!-- Network login -->
+  <rect x="60" y="40" width="1390" height="340" rx="10" fill="#f4f6fa" stroke="#3b4a6b" stroke-width="2" stroke-dasharray="8 4"/>
+  <text x="80" y="68" font-size="18" font-weight="bold" fill="#3b4a6b">login</text>
+  <text x="80" y="88" font-size="11" fill="#8a96b0">gofbpsrvls/pkg/users</text>
+  <text x="80" y="104" font-size="12" font-style="italic" fill="#666">checks name and password and creates a session</text>
+
+  <!-- Brick finduser -->
+  <rect x="200" y="200" width="290" height="110" rx="6" fill="#ffffff" stroke="#222" stroke-width="2"/>
+  <text x="345" y="242" font-size="15" font-weight="bold" text-anchor="middle">finduser</text>
+  <text x="345" y="260" font-size="12" fill="#666" text-anchor="middle">FindUser</text>
+  <text x="345" y="276" font-size="10" fill="#999" text-anchor="middle">gofbpsrvls/pkg/users</text>
+  <text x="345" y="292" font-size="10" fill="#999" font-family="monospace" text-anchor="middle">FindUser(st)</text>
+
+  <!-- Brick checkpassword -->
+  <rect x="610" y="200" width="290" height="110" rx="6" fill="#ffffff" stroke="#222" stroke-width="2"/>
+  <text x="755" y="242" font-size="15" font-weight="bold" text-anchor="middle">checkpassword</text>
+  <text x="755" y="260" font-size="12" fill="#666" text-anchor="middle">CheckPassword</text>
+  <text x="755" y="276" font-size="10" fill="#999" text-anchor="middle">gofbpsrvls/pkg/users</text>
+  <text x="755" y="292" font-size="10" fill="#999" font-family="monospace" text-anchor="middle">CheckPassword()</text>
+
+  <!-- Brick createsession -->
+  <rect x="1020" y="200" width="290" height="110" rx="6" fill="#ffffff" stroke="#222" stroke-width="2"/>
+  <text x="1165" y="242" font-size="15" font-weight="bold" text-anchor="middle">createsession</text>
+  <text x="1165" y="260" font-size="12" fill="#666" text-anchor="middle">CreateSession</text>
+  <text x="1165" y="276" font-size="10" fill="#999" text-anchor="middle">gofbpsrvls/pkg/users</text>
+  <text x="1165" y="292" font-size="10" fill="#999" font-family="monospace" text-anchor="middle">CreateSession(st)</text>
+
+  <!-- Connections -->
+  <!-- Netz-Inport -> finduser.Inport -->
+  <path d="M69,255 L190,255" stroke="#444" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <!-- finduser.Success -> checkpassword.Inport -->
+  <path d="M499,237 C549,237 549,255 600,255" stroke="#444" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <!-- checkpassword.Success -> createsession.Inport -->
+  <path d="M909,237 C959,237 959,255 1010,255" stroke="#444" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <!-- createsession.Success -> Netz-Success -->
+  <path d="M1319,237 L1440,237" stroke="#444" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <!-- finduser.Error -> Netz-Error -->
+  <path d="M499,273 C539,273 539,350 579,350 L1440,350" stroke="#c0392b" stroke-width="1.5" fill="none" marker-end="url(#arrow-err)"/>
+  <!-- checkpassword.Error -> Netz-Error -->
+  <path d="M909,273 C949,273 949,350 989,350 L1440,350" stroke="#c0392b" stroke-width="1.5" fill="none" marker-end="url(#arrow-err)"/>
+  <!-- createsession.Error -> Netz-Error -->
+  <path d="M1319,273 C1359,273 1359,350 1399,350 L1440,350" stroke="#c0392b" stroke-width="1.5" fill="none" marker-end="url(#arrow-err)"/>
+
+  <!-- Ports: Network -->
+  <circle cx="60" cy="255" r="9" fill="#4a90d9" stroke="#1f4e85" stroke-width="2"/>
+  <text x="52" y="238" font-size="12" text-anchor="middle">Inport</text>
+  <circle cx="1450" cy="237" r="9" fill="#e8964a" stroke="#9a5418" stroke-width="2"/>
+  <text x="1458" y="220" font-size="12" text-anchor="middle">Success</text>
+  <circle cx="1450" cy="350" r="9" fill="#e06666" stroke="#8e2b27" stroke-width="2"/>
+  <text x="1458" y="333" font-size="12" text-anchor="middle">Error</text>
+
+  <!-- Ports: finduser -->
+  <circle cx="200" cy="255" r="9" fill="#4a90d9" stroke="#1f4e85" stroke-width="2"/>
+  <text x="187" y="245" font-size="11" text-anchor="end">Inport</text>
+  <circle cx="490" cy="237" r="9" fill="#e8964a" stroke="#9a5418" stroke-width="2"/>
+  <text x="503" y="229" font-size="11">Success</text>
+  <circle cx="490" cy="273" r="9" fill="#e06666" stroke="#8e2b27" stroke-width="2"/>
+  <text x="503" y="265" font-size="11">Error</text>
+
+  <!-- Ports: checkpassword -->
+  <circle cx="610" cy="255" r="9" fill="#4a90d9" stroke="#1f4e85" stroke-width="2"/>
+  <text x="597" y="245" font-size="11" text-anchor="end">Inport</text>
+  <circle cx="900" cy="237" r="9" fill="#e8964a" stroke="#9a5418" stroke-width="2"/>
+  <text x="913" y="229" font-size="11">Success</text>
+  <circle cx="900" cy="273" r="9" fill="#e06666" stroke="#8e2b27" stroke-width="2"/>
+  <text x="913" y="265" font-size="11">Error</text>
+
+  <!-- Ports: createsession -->
+  <circle cx="1020" cy="255" r="9" fill="#4a90d9" stroke="#1f4e85" stroke-width="2"/>
+  <text x="1007" y="245" font-size="11" text-anchor="end">Inport</text>
+  <circle cx="1310" cy="237" r="9" fill="#e8964a" stroke="#9a5418" stroke-width="2"/>
+  <text x="1323" y="229" font-size="11">Success</text>
+  <circle cx="1310" cy="273" r="9" fill="#e06666" stroke="#8e2b27" stroke-width="2"/>
+  <text x="1323" y="265" font-size="11">Error</text>
+
+  <!-- Legende -->
+  <circle cx="80" cy="422" r="7" fill="#4a90d9" stroke="#1f4e85" stroke-width="2"/>
+  <text x="93" y="426" font-size="12">Inport</text>
+  <circle cx="160" cy="422" r="7" fill="#e8964a" stroke="#9a5418" stroke-width="2"/>
+  <text x="173" y="426" font-size="12">Outport</text>
+  <circle cx="250" cy="422" r="7" fill="#e06666" stroke="#8e2b27" stroke-width="2"/>
+  <text x="263" y="426" font-size="12">Error-Outport</text>
+  <rect x="360" y="414" width="22" height="16" rx="3" fill="#fff" stroke="#222" stroke-width="2"/>
+  <text x="390" y="426" font-size="12">Brick</text>
+  <rect x="440" y="414" width="22" height="16" rx="3" fill="#f4f6fa" stroke="#3b4a6b" stroke-width="2" stroke-dasharray="4 2"/>
+  <text x="470" y="426" font-size="12">Network</text>
+</svg>

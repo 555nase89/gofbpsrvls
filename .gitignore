@@ -1,0 +1,15 @@
+# Compiled binaries in cmd/<name>/ (named like their folder)
+/cmd/*/*
+!/cmd/*/*.go
+!/cmd/*/example.json
+
+# Local program configs (NATS address, NKey path)
+/cmd/*/config.json
+
+# Environment files with secrets
+*.env
+
+# gofbpstore databases
+*.db
+*.db-wal
+*.db-shm

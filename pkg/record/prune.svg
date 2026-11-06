@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 750" width="740" height="750" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+    <marker id="arrow-err" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#c0392b"/>
+    </marker>
+  </defs>
+
+  <rect width="740" height="750" fill="#ffffff"/>
+
+  <!-- Network prune -->
+  <rect x="60" y="40" width="580" height="640" rx="10" fill="#f4f6fa" stroke="#3b4a6b" stroke-width="2" stroke-dasharray="8 4"/>
+  <text x="80" y="68" font-size="18" font-weight="bold" fill="#3b4a6b">prune</text>
+  <text x="80" y="88" font-size="11" fill="#8a96b0">gofbpsrvls/pkg/record</text>
+  <text x="80" y="104" font-size="12" font-style="italic" fill="#666">deletes old Events, log records and expired sessions</text>
+
+  <!-- Brick pruneevents -->
+  <rect x="200" y="200" width="290" height="110" rx="6" fill="#ffffff" stroke="#222" stroke-width="2"/>
+  <text x="345" y="242" font-size="15" font-weight="bold" text-anchor="middle">pruneevents</text>
+  <text x="345" y="260" font-size="12" fill="#666" text-anchor="middle">PruneEvents</text>
+  <text x="345" y="276" font-size="10" fill="#999" text-anchor="middle">gofbpsrvls/pkg/record</text>
+  <text x="345" y="292" font-size="10" fill="#999" font-family="monospace" text-anchor="middle">PruneEvents(st)</text>
+
+  <!-- Brick prunelogs -->
+  <rect x="200" y="350" width="290" height="110" rx="6" fill="#ffffff" stroke="#222" stroke-width="2"/>
+  <text x="345" y="392" font-size="15" font-weight="bold" text-anchor="middle">prunelogs</text>
+  <text x="345" y="410" font-size="12" fill="#666" text-anchor="middle">PruneLogs</text>
+  <text x="345" y="426" font-size="10" fill="#999" text-anchor="middle">gofbpsrvls/pkg/record</text>
+  <text x="345" y="442" font-size="10" fill="#999" font-family="monospace" text-anchor="middle">PruneLogs(st)</text>
+
+  <!-- Brick prunesessions -->
+  <rect x="200" y="500" width="290" height="110" rx="6" fill="#ffffff" stroke="#222" stroke-width="2"/>
+  <text x="345" y="542" font-size="15" font-weight="bold" text-anchor="middle">prunesessions</text>
+  <text x="345" y="560" font-size="12" fill="#666" text-anchor="middle">PruneSessions</text>
+  <text x="345" y="576" font-size="10" fill="#999" text-anchor="middle">gofbpsrvls/pkg/record</text>
+  <text x="345" y="592" font-size="10" fill="#999" font-family="monospace" text-anchor="middle">PruneSessions(st)</text>
+
+  <!-- Connections -->
+  <!-- Netz-Inport -> pruneevents.Inport -->
+  <path d="M69,405 C129,405 129,255 190,255" stroke="#444" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <!-- Netz-Inport -> prunelogs.Inport -->
+  <path d="M69,405 L190,405" stroke="#444" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <!-- Netz-Inport -> prunesessions.Inport -->
+  <path d="M69,405 C129,405 129,555 190,555" stroke="#444" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <!-- pruneevents.Success -> Netz-Success -->
+  <path d="M499,237 L630,237" stroke="#444" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <!-- prunelogs.Success -> Netz-Success -->
+  <path d="M499,387 L550,387 C590,387 590,237 630,237" stroke="#444" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <!-- prunesessions.Success -> Netz-Success -->
+  <path d="M499,537 L550,537 C590,537 590,237 630,237" stroke="#444" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <!-- pruneevents.Error -> Netz-Error -->
+  <path d="M499,273 C539,273 539,650 579,650 L630,650" stroke="#c0392b" stroke-width="1.5" fill="none" marker-end="url(#arrow-err)"/>
+  <!-- prunelogs.Error -> Netz-Error -->
+  <path d="M499,423 C539,423 539,650 579,650 L630,650" stroke="#c0392b" stroke-width="1.5" fill="none" marker-end="url(#arrow-err)"/>
+  <!-- prunesessions.Error -> Netz-Error -->
+  <path d="M499,573 C539,573 539,650 579,650 L630,650" stroke="#c0392b" stroke-width="1.5" fill="none" marker-end="url(#arrow-err)"/>
+
+  <!-- Ports: Network -->
+  <circle cx="60" cy="405" r="9" fill="#4a90d9" stroke="#1f4e85" stroke-width="2"/>
+  <text x="52" y="388" font-size="12" text-anchor="middle">In</text>
+  <circle cx="640" cy="237" r="9" fill="#e8964a" stroke="#9a5418" stroke-width="2"/>
+  <text x="648" y="220" font-size="12" text-anchor="middle">Success</text>
+  <circle cx="640" cy="650" r="9" fill="#e06666" stroke="#8e2b27" stroke-width="2"/>
+  <text x="648" y="633" font-size="12" text-anchor="middle">Error</text>
+
+  <!-- Ports: pruneevents -->
+  <circle cx="200" cy="255" r="9" fill="#4a90d9" stroke="#1f4e85" stroke-width="2"/>
+  <text x="187" y="245" font-size="11" text-anchor="end">Inport</text>
+  <circle cx="490" cy="237" r="9" fill="#e8964a" stroke="#9a5418" stroke-width="2"/>
+  <text x="503" y="229" font-size="11">Success</text>
+  <circle cx="490" cy="273" r="9" fill="#e06666" stroke="#8e2b27" stroke-width="2"/>
+  <text x="503" y="265" font-size="11">Error</text>
+
+  <!-- Ports: prunelogs -->
+  <circle cx="200" cy="405" r="9" fill="#4a90d9" stroke="#1f4e85" stroke-width="2"/>
+  <text x="187" y="395" font-size="11" text-anchor="end">Inport</text>
+  <circle cx="490" cy="387" r="9" fill="#e8964a" stroke="#9a5418" stroke-width="2"/>
+  <text x="503" y="379" font-size="11">Success</text>
+  <circle cx="490" cy="423" r="9" fill="#e06666" stroke="#8e2b27" stroke-width="2"/>
+  <text x="503" y="415" font-size="11">Error</text>
+
+  <!-- Ports: prunesessions -->
+  <circle cx="200" cy="555" r="9" fill="#4a90d9" stroke="#1f4e85" stroke-width="2"/>
+  <text x="187" y="545" font-size="11" text-anchor="end">Inport</text>
+  <circle cx="490" cy="537" r="9" fill="#e8964a" stroke="#9a5418" stroke-width="2"/>
+  <text x="503" y="529" font-size="11">Success</text>
+  <circle cx="490" cy="573" r="9" fill="#e06666" stroke="#8e2b27" stroke-width="2"/>
+  <text x="503" y="565" font-size="11">Error</text>
+
+  <!-- Legende -->
+  <circle cx="80" cy="722" r="7" fill="#4a90d9" stroke="#1f4e85" stroke-width="2"/>
+  <text x="93" y="726" font-size="12">Inport</text>
+  <circle cx="160" cy="722" r="7" fill="#e8964a" stroke="#9a5418" stroke-width="2"/>
+  <text x="173" y="726" font-size="12">Outport</text>
+  <circle cx="250" cy="722" r="7" fill="#e06666" stroke="#8e2b27" stroke-width="2"/>
+  <text x="263" y="726" font-size="12">Error-Outport</text>
+  <rect x="360" y="714" width="22" height="16" rx="3" fill="#fff" stroke="#222" stroke-width="2"/>
+  <text x="390" y="726" font-size="12">Brick</text>
+  <rect x="440" y="714" width="22" height="16" rx="3" fill="#f4f6fa" stroke="#3b4a6b" stroke-width="2" stroke-dasharray="4 2"/>
+  <text x="470" y="726" font-size="12">Network</text>
+</svg>

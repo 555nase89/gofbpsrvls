@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>goFBP Services</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>goFBP Services</h1>
+  <span id="status" class="muted"></span>
+  <button id="refresh" type="button">Refresh</button>
+  <span id="me" class="muted" hidden></span>
+  <button id="users-btn" type="button" hidden>Users</button>
+  <button id="logout" type="button" hidden>Logout</button>
+</header>
+<div id="login" class="page" hidden>
+  <form id="login-form" class="card">
+    <h2>Login</h2>
+    <label>Name <input id="login-name" autocomplete="username" required></label>
+    <label>Password <input id="login-password" type="password" autocomplete="current-password" required></label>
+    <p id="login-error" class="warn" hidden></p>
+    <button type="submit">Login</button>
+  </form>
+</div>
+<div id="admin" class="page" hidden>
+  <div class="card wide">
+    <div class="head">
+      <h2>Users</h2>
+      <button id="admin-close" type="button">Back to Networks</button>
+    </div>
+    <p id="admin-error" class="warn" hidden></p>
+    <table class="users">
+      <thead><tr><th>Name</th><th>Role</th><th>Created</th><th>New password</th><th></th></tr></thead>
+      <tbody id="users"></tbody>
+    </table>
+    <form id="user-form" class="toolbar">
+      <h3>New user</h3>
+      <input id="new-name" placeholder="Name" required>
+      <input id="new-password" type="password" placeholder="Password (min. 10)" autocomplete="new-password" required>
+      <select id="new-role"><option value="viewer">viewer</option><option value="admin">admin</option></select>
+      <button type="submit">Create</button>
+    </form>
+  </div>
+</div>
+<main id="main">
+  <nav>
+    <ul id="networks"></ul>
+    <p id="empty" class="muted" hidden>No goFBP Services found on NATS.</p>
+  </nav>
+  <section id="detail" hidden>
+    <div class="head">
+      <div>
+        <h2 id="d-name"></h2>
+        <div id="d-base" class="mono muted"></div>
+      </div>
+      <label class="switch" title="Switches observing for all Services of this Network">
+        <input id="d-trace" type="checkbox">
+        <span>Trace</span>
+      </label>
+    </div>
+    <p id="d-stopped" class="muted" hidden>No Service of this Network is running; recorded data only.</p>
+    <p id="d-mixed" class="warn" hidden>Services differ: observing is on for some of them only.</p>
+    <dl class="ports">
+      <dt>Inports</dt><dd id="d-inports" class="mono"></dd>
+      <dt>Outports</dt><dd id="d-outports" class="mono"></dd>
+    </dl>
+    <table class="services" id="d-services-table">
+      <thead><tr><th>Service</th><th>Version</th><th>Started</th><th>Trace</th><th class="num">Received</th><th class="num">Errors</th><th class="num">Dropped</th><th>Outports</th></tr></thead>
+      <tbody id="d-services"></tbody>
+    </table>
+    <div class="tabs" role="tablist">
+      <button id="tab-events" type="button" role="tab" class="tab active">Events</button>
+      <button id="tab-logs" type="button" role="tab" class="tab">Logs</button>
+    </div>
+    <div id="pane-events">
+      <div id="trace" hidden>
+        <div class="toolbar">
+          <input id="filter" type="search" placeholder="Filter by Run ID, Node, Kind …">
+          <button id="pause" type="button">Pause</button>
+          <button id="clear" type="button">Clear</button>
+          <span id="count" class="muted"></span>
+        </div>
+        <div class="scroll">
+          <table class="events">
+            <thead><tr><th>Time</th><th>Service</th><th>Kind</th><th>Run ID</th><th>Packet</th><th>Node</th><th>Port</th><th>Data / Error</th></tr></thead>
+            <tbody id="events"></tbody>
+          </table>
+        </div>
+        <button id="older" type="button" class="older" hidden>Load older</button>
+      </div>
+      <p id="trace-off" class="muted">Trace is off. Switch it on to see the Events of this Network.</p>
+    </div>
+    <div id="pane-logs" hidden>
+      <div class="toolbar">
+        <select id="log-level" title="Lowest level shown">
+          <option value="-4">Debug</option>
+          <option value="0" selected>Info</option>
+          <option value="4">Warn</option>
+          <option value="8">Error</option>
+        </select>
+        <input id="log-filter" type="search" placeholder="Filter by Service, message, attribute …">
+        <button id="log-pause" type="button">Pause</button>
+        <button id="log-clear" type="button">Clear</button>
+        <span id="log-count" class="muted"></span>
+      </div>
+      <div class="scroll">
+        <table class="logs">
+          <thead><tr><th>Time</th><th>Service</th><th>Level</th><th>Message</th><th>Attributes</th></tr></thead>
+          <tbody id="logs"></tbody>
+        </table>
+      </div>
+      <button id="log-older" type="button" class="older" hidden>Load older</button>
+    </div>
+  </section>
+</main>
+<script src="app.js"></script>
+</body>
+</html>

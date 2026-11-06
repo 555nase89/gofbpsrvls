@@ -1,0 +1,10 @@
+{
+    "natscon": {
+        "url": "nats://127.0.0.1:4222",
+        "nkeyfile": ""
+    },
+    "listen": "127.0.0.1:8090",
+    "db": "gofbpstore.db",
+    "retention": "720h",
+    "cookie_secure": false
+}
