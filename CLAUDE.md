@@ -27,4 +27,5 @@ Web interfaces for goFBP Services (`../goFBP`), two programs:
   `pkg/store`. Never log the input of an Error Packet of `login`/`useradmin` (it holds passwords).
 - Tests start an embedded nats-server and real goFBP Services (`gofbp/examples/text`) and use a
   SQLite file in `t.TempDir()`, so `/snap/go/current/bin/go test ./...` needs no external NATS.
-- `../goFBP` is pulled in via `replace`.
+- `github.com/555nase89/goFBP` is a regular dependency. The repository is private, so Go needs
+  `GOPRIVATE=github.com/555nase89/*`.

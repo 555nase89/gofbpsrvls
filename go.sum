@@ -1,3 +1,5 @@
+github.com/555nase89/goFBP v0.0.0-20261106221740-24da7580af5e h1:AaUuYoa0K2CJoG9A459R9CcwBHwQVDSQQXBguHNAJCs=
+github.com/555nase89/goFBP v0.0.0-20261106221740-24da7580af5e/go.mod h1:7VeyaDg8JWs/mFV0hKcmgQ8XGPjofi40BobSkXWEgr0=
 github.com/antithesishq/antithesis-sdk-go v0.5.0-default-no-op h1:Ucf+QxEKMbPogRO5guBNe5cgd9uZgfoJLOYs8WWhtjM=
 github.com/antithesishq/antithesis-sdk-go v0.5.0-default-no-op/go.mod h1:IUpT2DPAKh6i/YhSbt6Gl3v2yvUZjmKncl7U91fup7E=
 github.com/dustin/go-humanize v1.1.0 h1:dbKTrvD0klcbBV/h4AWJdMuZogJACoMlvWIWZ5b2xWg=

@@ -2,10 +2,8 @@ module gofbpsrvls
 
 go 1.27.3
 
-replace github.com/555nase89/goFBP => ../goFBP
-
 require (
-	github.com/555nase89/goFBP v0.0.0
+	github.com/555nase89/goFBP v0.0.0-20261106221740-24da7580af5e
 	github.com/nats-io/nats-server/v2 v2.12.4
 	github.com/nats-io/nats.go v1.48.0
 	golang.org/x/crypto v0.47.0
