@@ -15,6 +15,7 @@ import (
 
 	"github.com/555nase89/goFBP/examples/text"
 	"github.com/555nase89/goFBP/pkg/fbp"
+	"github.com/555nase89/goFBP/pkg/fbptest"
 	"github.com/555nase89/goFBP/pkg/service"
 
 	"github.com/nats-io/nats-server/v2/server"
@@ -68,26 +69,33 @@ func startRunner(t *testing.T, net *fbp.Network, err error) *flow.Runner {
 	return r
 }
 
+// js returns v as JSON text.
+func js(t *testing.T, v any) string {
+	t.Helper()
+	b, err := json.Marshal(v)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(b)
+}
+
 func TestRecordNetwork(t *testing.T) {
 	st := openStore(t)
 	net, err := Record(st)
-	r := startRunner(t, net, err)
+	if err != nil {
+		t.Fatal(err)
+	}
+	inst := fbptest.Start(t, net, fbp.WithLogger(quiet))
 	ctx := context.Background()
 
-	in := EventInput{Base: "fbp.a.n", Event: service.EventData{Service: "s1", Kind: "Sent", Time: time.Now(), RunID: "r"}}
-	if outport, _, err := r.Call(ctx, fbp.In, in); err != nil || outport != fbp.Success {
-		t.Fatalf("event: %s, %v", outport, err)
-	}
-	log := LogInput{Base: "fbp.a.n", Log: service.LogData{Service: "s1", Seq: 1, Time: time.Now(), Level: "INFO", Message: "hi"}}
+	// Stored rows leave unchanged through Success.
+	event := js(t, EventInput{Base: "fbp.a.n", Event: service.EventData{Service: "s1", Kind: "Sent", Time: time.Now(), RunID: "r"}})
+	inst.Run(t, event).Want(t, fbptest.Outputs{fbp.Success: {event}})
+	log := js(t, LogInput{Base: "fbp.a.n", Log: service.LogData{Service: "s1", Seq: 1, Time: time.Now(), Level: "INFO", Message: "hi"}})
 	for range 2 {
-		if outport, _, err := r.Call(ctx, LogInport, log); err != nil || outport != fbp.Success {
-			t.Fatalf("log: %s, %v", outport, err)
-		}
+		inst.RunTo(t, LogInport, log).Want(t, fbptest.Outputs{fbp.Success: {log}})
 	}
-	outport, p, err := r.Call(ctx, fbp.In, EventInput{Base: "fbp.a.n"})
-	if err != nil || outport != fbp.Error || flow.ErrorMessage(p) != "event without base, service or kind" {
-		t.Fatalf("invalid event: %s %s, %v", outport, p.Data, err)
-	}
+	inst.Run(t, js(t, EventInput{Base: "fbp.a.n"})).WantError(t, "checkevent", "event without base, service or kind")
 	events, _ := st.Events(ctx, store.Page{Base: "fbp.a.n"})
 	logs, _ := st.Logs(ctx, store.Page{Base: "fbp.a.n"})
 	if len(events) != 1 || len(logs) != 1 {
@@ -103,21 +111,26 @@ func TestPruneNetwork(t *testing.T) {
 	st.InsertEvent(ctx, "fbp.a.n", service.EventData{Service: "s", Kind: "Sent", Time: time.Now()})
 	st.InsertLog(ctx, "fbp.a.n", service.LogData{Service: "s", Seq: 1, Time: old, Level: "INFO"})
 	net, err := Prune(st)
-	r := startRunner(t, net, err)
-	if err := r.Send(ctx, fbp.In, PruneInput{Before: time.Now().Add(-24 * time.Hour)}); err != nil {
+	if err != nil {
 		t.Fatal(err)
 	}
-	deadline := time.Now().Add(timeout)
-	for {
-		events, _ := st.Events(ctx, store.Page{Base: "fbp.a.n"})
-		logs, _ := st.Logs(ctx, store.Page{Base: "fbp.a.n"})
-		if len(events) == 1 && len(logs) == 0 {
-			return
-		}
-		if time.Now().After(deadline) {
-			t.Fatalf("events %d, logs %d", len(events), len(logs))
-		}
-		time.Sleep(10 * time.Millisecond)
+
+	// Fan-out: each prune Brick reports its table; Run waits for all three.
+	fbptest.Run(t, net, js(t, PruneInput{Before: time.Now().Add(-24 * time.Hour)}), fbp.WithLogger(quiet)).
+		Want(t, fbptest.Outputs{fbp.Success: {
+			js(t, PruneResult{Table: "events", Deleted: 1}),
+			js(t, PruneResult{Table: "logs", Deleted: 1}),
+			js(t, PruneResult{Table: "sessions", Deleted: 0}),
+		}})
+	events, _ := st.Events(ctx, store.Page{Base: "fbp.a.n"})
+	logs, _ := st.Logs(ctx, store.Page{Base: "fbp.a.n"})
+	if len(events) != 1 || len(logs) != 0 {
+		t.Fatalf("events %d, logs %d", len(events), len(logs))
+	}
+	// Without before, every prune Brick fails.
+	res := fbptest.Run(t, net, `{}`, fbp.WithLogger(quiet))
+	if len(res.Outputs[fbp.Error]) != 3 || len(res.Outputs) != 1 {
+		t.Fatalf("prune without before: got %s", res)
 	}
 }
 

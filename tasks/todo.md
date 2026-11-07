@@ -26,6 +26,12 @@
   of two admins left none before); the Collector asks again for a Log history that timed out
   instead of losing it; `events`/`logs` IDs use `AUTOINCREMENT` (with migration of older files),
   so open gofbpstore streams do not stall after pruning has emptied a table (2026-10-31).
+- `README.md`: overview of both programs, setup, config, layout, tests and links to `docs/`
+  (2026-11-06).
+- Tests of the Networks `record`, `prune`, `login` and `useradmin` use `gofbp/pkg/fbptest`: they
+  wait for the end of each Run instead of polling and check every Packet that leaves (e.g. all three
+  `PruneResult`s); `RouteAction` and `CheckNewUser` are tested as single Bricks with `CallBrick`.
+  goFBP updated to f10847a (2026-11-07).
 
 ## Open
 - gofbpstore: no TLS of its own (reverse proxy), no login rate limit beyond bcrypt's cost, no
