@@ -1,6 +1,7 @@
 // Package users holds the Networks that change users and sessions of
-// gofbpstore: login creates a session, useradmin creates, updates and
-// deletes users. Checking a session on each request is a plain store query.
+// gofbpstore: login creates a session, password lets a user change its own
+// password, useradmin creates, updates and deletes users. Checking a session
+// on each request is a plain store query.
 package users
 
 import (
@@ -28,6 +29,10 @@ const SessionTTL = 12 * time.Hour
 // ErrLogin is the message of every failed login, so a caller cannot tell
 // whether the name or the password was wrong.
 var ErrLogin = errors.New("invalid name or password")
+
+// ErrPassword is the message of a password change with a wrong current
+// password.
+var ErrPassword = errors.New("current password is wrong")
 
 // Actions of the Network useradmin.
 const (
@@ -71,6 +76,14 @@ type UserInput struct {
 	Password string `json:"password,omitempty"`
 	Role     string `json:"role,omitempty"`
 	Hash     string `json:"hash,omitempty"` // set by HashPassword
+}
+
+// PasswordInput is the Packet data of the Network password: a user changes
+// its own password. Name comes from the session, never from the browser.
+type PasswordInput struct {
+	Name        string `json:"name"`
+	Password    string `json:"password"`
+	NewPassword string `json:"new_password"`
 }
 
 // UserResult is the Success of the Network useradmin.
@@ -319,6 +332,76 @@ func UpdateUser(st *store.Store) *fbp.Brick {
 				return err
 			}
 			return fbp.EmitAs(ctx, out, fbp.Success, UserResult{Action: in.Action, Name: in.Name, Role: in.Role})
+		},
+	}
+}
+
+// CheckNewPassword checks the new password of a PasswordInput.
+func CheckNewPassword() *fbp.Brick {
+	return &fbp.Brick{
+		Name:        "CheckNewPassword",
+		Description: "Checks the new password of a password change",
+		Process: func(ctx context.Context, p fbp.Packet, out fbp.Emitter) error {
+			in, err := fbp.DataAs[PasswordInput](p)
+			if err != nil {
+				return err
+			}
+			if err := checkPassword(in.NewPassword); err != nil {
+				return err
+			}
+			if in.NewPassword == in.Password {
+				return errors.New("new password must differ from the current one")
+			}
+			return out.Emit(ctx, fbp.Success, p.Data)
+		},
+	}
+}
+
+// VerifyPassword compares the current password of a PasswordInput with the
+// user's hash and emits a UserInput with the new password for HashPassword.
+func VerifyPassword(st *store.Store) *fbp.Brick {
+	return &fbp.Brick{
+		Name:        "VerifyPassword",
+		Description: "Compares the current password of a password change with the stored hash",
+		Process: func(ctx context.Context, p fbp.Packet, out fbp.Emitter) error {
+			in, err := fbp.DataAs[PasswordInput](p)
+			if err != nil {
+				return err
+			}
+			u, err := st.User(ctx, in.Name)
+			if err != nil {
+				return err
+			}
+			if bcrypt.CompareHashAndPassword([]byte(u.PwHash), []byte(in.Password)) != nil {
+				return ErrPassword
+			}
+			return fbp.EmitAs(ctx, out, fbp.Success, UserInput{Name: in.Name, Password: in.NewPassword})
+		},
+	}
+}
+
+// SetPassword stores the hash of a hashed UserInput, which ends all sessions
+// of the user, and emits the user for CreateSession.
+func SetPassword(st *store.Store) *fbp.Brick {
+	return &fbp.Brick{
+		Name:        "SetPassword",
+		Description: "Sets the password of a user and ends its sessions",
+		Process: func(ctx context.Context, p fbp.Packet, out fbp.Emitter) error {
+			in, err := fbp.DataAs[UserInput](p)
+			if err != nil {
+				return err
+			}
+			if in.Hash == "" {
+				return errors.New("no password hash")
+			}
+			if err := st.SetPassword(ctx, in.Name, in.Hash); err != nil {
+				return err
+			}
+			u, err := st.User(ctx, in.Name)
+			if err != nil {
+				return err
+			}
+			return fbp.EmitAs(ctx, out, fbp.Success, loginState{User: u})
 		},
 	}
 }

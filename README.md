@@ -63,7 +63,7 @@ speaks plain HTTP — to reach it from other machines, put it behind a reverse p
 | `pkg/web` | HTTP server of gofbpsrvls |
 | `pkg/webui` | Shared UI (plain HTML/CSS/JS, embedded, no build step) |
 | `pkg/store` | SQLite storage of gofbpstore |
-| `pkg/record`, `pkg/users` | goFBP Networks for recording/pruning and login/user administration |
+| `pkg/record`, `pkg/users` | goFBP Networks for recording/pruning and login/password change/user administration |
 | `pkg/flow` | Runs a goFBP Network in-process |
 | `pkg/storeweb` | HTTP server of gofbpstore |
 | `docs/` | Concept and operations documentation |

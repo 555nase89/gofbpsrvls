@@ -76,7 +76,7 @@ func setup(t *testing.T) env {
 		}
 	}
 	ts := httptest.NewServer(New(Config{NC: nc, Store: st, Login: start(users.Login(st)), Useradmin: useradmin,
-		Logger: quiet, Wait: 200 * time.Millisecond}))
+		Password: start(users.Password(st)), Logger: quiet, Wait: 200 * time.Millisecond}))
 	t.Cleanup(ts.Close)
 	return env{nc: nc, st: st, ts: ts}
 }
@@ -242,6 +242,62 @@ func TestNetworksAndStreams(t *testing.T) {
 	var older []store.Log
 	if code := e.get(t, admin, "/api/networks/logs?base="+s.Base()+"&before="+jsonID(last.ID), &older); code != http.StatusOK || len(older) != 2 {
 		t.Fatalf("older: %d %+v", code, older)
+	}
+}
+
+func TestLoginLimit(t *testing.T) {
+	e := setup(t)
+	anon := e.client(t, "")
+	for i := range LoginAttempts {
+		if code := e.post(t, anon, "/api/login", users.LoginInput{Name: "admin", Password: "wrong-password"}); code != http.StatusUnauthorized {
+			t.Fatalf("attempt %d: %d", i+1, code)
+		}
+	}
+	// Now even the right password is refused, but only for this name.
+	body, _ := json.Marshal(users.LoginInput{Name: "admin", Password: "0123456789"})
+	resp, err := anon.Post(e.ts.URL+"/api/login", "application/json", strings.NewReader(string(body)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusTooManyRequests || resp.Header.Get("Retry-After") == "" {
+		t.Fatalf("throttled login: %d, Retry-After %q", resp.StatusCode, resp.Header.Get("Retry-After"))
+	}
+	e.client(t, "viewer")
+	// A successful login forgets the failed attempts.
+	for range 3 {
+		for range LoginAttempts - 1 {
+			e.post(t, anon, "/api/login", users.LoginInput{Name: "viewer", Password: "wrong-password"})
+		}
+		e.client(t, "viewer")
+	}
+}
+
+func TestPasswordChange(t *testing.T) {
+	e := setup(t)
+	viewer, other := e.client(t, "viewer"), e.client(t, "viewer")
+	if code := e.post(t, e.client(t, ""), "/api/password", PasswordRequest{Password: "0123456789", NewPassword: "new-password"}); code != http.StatusUnauthorized {
+		t.Fatalf("anonymous: %d", code)
+	}
+	if code := e.post(t, viewer, "/api/password", PasswordRequest{Password: "wrong-password", NewPassword: "new-password"}); code != http.StatusBadRequest {
+		t.Fatalf("wrong current password: %d", code)
+	}
+	if code := e.post(t, viewer, "/api/password", PasswordRequest{Password: "0123456789", NewPassword: "short"}); code != http.StatusBadRequest {
+		t.Fatalf("short new password: %d", code)
+	}
+	if code := e.post(t, viewer, "/api/password", PasswordRequest{Password: "0123456789", NewPassword: "new-password"}); code != http.StatusOK {
+		t.Fatalf("change: %d", code)
+	}
+	// The changing browser got a new session, the other one is logged out.
+	var me store.User
+	if code := e.get(t, viewer, "/api/me", &me); code != http.StatusOK || me.Name != "viewer" {
+		t.Fatalf("me after change: %d %+v", code, me)
+	}
+	if code := e.get(t, other, "/api/me", nil); code != http.StatusUnauthorized {
+		t.Fatalf("other session after change: %d", code)
+	}
+	if code := e.post(t, e.client(t, ""), "/api/login", users.LoginInput{Name: "viewer", Password: "new-password"}); code != http.StatusOK {
+		t.Fatalf("login with new password: %d", code)
 	}
 }
 

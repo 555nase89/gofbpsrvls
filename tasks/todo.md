@@ -32,11 +32,17 @@
   wait for the end of each Run instead of polling and check every Packet that leaves (e.g. all three
   `PruneResult`s); `RouteAction` and `CheckNewUser` are tested as single Bricks with `CallBrick`.
   goFBP updated to f10847a (2026-11-07).
+- gofbpstore: password attempts limited to 5 per user name within 15 min (login and password change,
+  429 with `Retry-After`, in memory); every user changes its own password via the new Network
+  `password` (`POST /api/password`, Password page in the UI); it ends the user's other sessions
+  (2026-11-07).
 
 ## Open
-- gofbpstore: no TLS of its own (reverse proxy), no login rate limit beyond bcrypt's cost, no
-  self-service password change for viewers (an admin sets it). Streams poll SQLite every second per
-  browser; fine for a few users.
+- gofbpstore: no TLS of its own (reverse proxy). Streams poll SQLite every second per browser; fine
+  for a few users. The login limit counts per user name only (no per-client limit, since behind a
+  proxy all clients share an address), so trying one password against many names is not slowed
+  beyond bcrypt, and a guesser can lock a user out for 15 min.
+- Password page only checked via API tests and `node --check`, not in a browser.
 - Viewer role in the UI only checked via API tests, not in a browser.
 - UI checked in headless Firefox screenshots only (light mode, Events and Logs tab); check dark
   mode, the narrow layout and many Events/records in a real browser.

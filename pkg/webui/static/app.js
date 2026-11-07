@@ -36,14 +36,16 @@ function observing(n) {
 // running is false for a Network gofbpstore only knows from its store.
 const running = (n) => n.running !== false;
 
-// show displays one of the pages "main", "login" or "admin".
+// show displays one of the pages "main", "login", "password" or "admin".
 function show(page) {
   $("main").hidden = page !== "main";
   $("login").hidden = page !== "login";
+  $("password").hidden = page !== "password";
   $("admin").hidden = page !== "admin";
   for (const id of ["refresh", "status"]) $(id).hidden = page !== "main";
   $("me").hidden = $("logout").hidden = !me;
   $("users-btn").hidden = !me || me.role !== "admin" || page === "admin";
+  $("password-btn").hidden = !me || page === "password";
   if (page !== "main") { stopStream(); stopLogs(); }
 }
 
@@ -68,6 +70,7 @@ async function boot() {
     me = await r.json();
     $("me").textContent = me.name + " (" + me.role + ")";
     if (location.hash === "#users" && me.role === "admin") return showUsers();
+    if (location.hash === "#password") return showPassword();
   }
   startRefresh();
 }
@@ -422,6 +425,36 @@ $("user-form").onsubmit = async (ev) => {
     $("new-name").value = $("new-password").value = "";
     renderUsers();
   }
+};
+
+function showPassword() {
+  history.replaceState(null, "", "#password");
+  for (const id of ["pw-current", "pw-new", "pw-repeat"]) $(id).value = "";
+  $("pw-error").hidden = $("pw-done").hidden = true;
+  show("password");
+  $("pw-current").focus();
+}
+$("password-btn").onclick = showPassword;
+$("password-close").onclick = () => { showTab(tab); startRefresh(); };
+$("password-form").onsubmit = async (ev) => {
+  ev.preventDefault();
+  const err = $("pw-error");
+  $("pw-done").hidden = true;
+  if ($("pw-new").value !== $("pw-repeat").value) {
+    err.textContent = "The new passwords do not match.";
+    err.hidden = false;
+    return;
+  }
+  const r = await fetch("api/password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password: $("pw-current").value, new_password: $("pw-new").value }),
+  });
+  if (r.status === 401) return loggedOut();
+  for (const id of ["pw-current", "pw-new", "pw-repeat"]) $(id).value = "";
+  err.hidden = r.ok;
+  $("pw-done").hidden = !r.ok;
+  if (!r.ok) err.textContent = (await r.text()).trim();
 };
 
 $("refresh").onclick = refresh;
