@@ -118,6 +118,20 @@ func TestUsersAndSessions(t *testing.T) {
 	if _, err := s.SessionUser(ctx, "tok"); !errors.Is(err, ErrNotFound) {
 		t.Fatalf("session after password change: %v", err)
 	}
+	// SetPassword ends the sessions too, but keeps the role.
+	s.InsertSession(ctx, "tok2", u.ID, time.Now().Add(time.Hour))
+	if err := s.SetPassword(ctx, "anna", "h5"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.SessionUser(ctx, "tok2"); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("session after SetPassword: %v", err)
+	}
+	if u, _ := s.User(ctx, "anna"); u.PwHash != "h5" || u.Role != RoleViewer {
+		t.Fatalf("after SetPassword: %+v", u)
+	}
+	if err := s.SetPassword(ctx, "nobody", "h6"); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("SetPassword of unknown user: %v", err)
+	}
 	s.InsertSession(ctx, "old", u.ID, time.Now().Add(-time.Minute))
 	if _, err := s.SessionUser(ctx, "old"); !errors.Is(err, ErrNotFound) {
 		t.Fatal("expired session accepted")

@@ -38,7 +38,11 @@ const (
 	PageSize = 500
 	// PollInterval is how often a stream looks for new rows in the store.
 	PollInterval = time.Second
-	natsTimeout  = 2 * time.Second
+	// LoginAttempts is how many password attempts (login or password
+	// change) a user name gets within LoginWindow.
+	LoginAttempts = 5
+	LoginWindow   = 15 * time.Minute
+	natsTimeout   = 2 * time.Second
 )
 
 // Config holds what a Server needs.
@@ -47,18 +51,24 @@ type Config struct {
 	Store     *store.Store
 	Login     *flow.Runner // Network users.Login
 	Useradmin *flow.Runner // Network users.Useradmin
+	Password  *flow.Runner // Network users.Password
 	Logger    *slog.Logger
 	// CookieSecure marks the session cookie Secure; set it when the server
 	// is reached via HTTPS.
 	CookieSecure bool
 	// Wait is how long a discovery collects replies (discover.DefaultWait if 0).
 	Wait time.Duration
+	// LoginAttempts and LoginWindow limit the password attempts per user
+	// name (the defaults of the same name if 0).
+	LoginAttempts int
+	LoginWindow   time.Duration
 }
 
 // Server is the HTTP handler of gofbpstore.
 type Server struct {
-	cfg Config
-	mux *http.ServeMux
+	cfg   Config
+	mux   *http.ServeMux
+	limit *limiter
 }
 
 type ctxKey struct{}
@@ -68,11 +78,18 @@ func New(cfg Config) *Server {
 	if cfg.Wait == 0 {
 		cfg.Wait = discover.DefaultWait
 	}
-	s := &Server{cfg: cfg, mux: http.NewServeMux()}
+	if cfg.LoginAttempts == 0 {
+		cfg.LoginAttempts = LoginAttempts
+	}
+	if cfg.LoginWindow == 0 {
+		cfg.LoginWindow = LoginWindow
+	}
+	s := &Server{cfg: cfg, mux: http.NewServeMux(), limit: newLimiter(cfg.LoginAttempts, cfg.LoginWindow)}
 	s.mux.Handle("GET /", http.FileServerFS(webui.Files()))
 	s.mux.HandleFunc("POST /api/login", s.login)
 	s.mux.HandleFunc("POST /api/logout", s.logout)
 	s.mux.HandleFunc("GET /api/me", s.auth("", s.me))
+	s.mux.HandleFunc("POST /api/password", s.auth("", s.password))
 	s.mux.HandleFunc("GET /api/networks", s.auth("", s.networks))
 	s.mux.HandleFunc("POST /api/networks/observe", s.auth(store.RoleAdmin, s.observe))
 	s.mux.HandleFunc("GET /api/networks/events", s.auth("", s.events))
@@ -127,11 +144,34 @@ func writeJSON(w http.ResponseWriter, v any) {
 	json.NewEncoder(w).Encode(v)
 }
 
+// throttled answers 429 and returns true if name has no password attempt
+// left; otherwise it counts one.
+func (s *Server) throttled(w http.ResponseWriter, name string) bool {
+	wait := s.limit.take(name)
+	if wait == 0 {
+		return false
+	}
+	secs := int(wait.Round(time.Second) / time.Second)
+	s.cfg.Logger.Warn("gofbpstore: password attempts throttled", "name", name, "retry_after", secs)
+	w.Header().Set("Retry-After", strconv.Itoa(max(secs, 1)))
+	http.Error(w, fmt.Sprintf("too many attempts, try again in %s", wait.Round(time.Second)), http.StatusTooManyRequests)
+	return true
+}
+
+// setSession sets the session cookie of res.
+func (s *Server) setSession(w http.ResponseWriter, res users.LoginResult) {
+	http.SetCookie(w, &http.Cookie{Name: CookieName, Value: res.Token, Path: "/", Expires: res.Expires,
+		HttpOnly: true, Secure: s.cfg.CookieSecure, SameSite: http.SameSiteStrictMode})
+}
+
 // login runs the Network login and sets the session cookie.
 func (s *Server) login(w http.ResponseWriter, r *http.Request) {
 	var in users.LoginInput
 	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
 		http.Error(w, "invalid request", http.StatusBadRequest)
+		return
+	}
+	if s.throttled(w, in.Name) {
 		return
 	}
 	outport, p, err := s.cfg.Login.Call(r.Context(), fbp.In, in)
@@ -154,9 +194,50 @@ func (s *Server) login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	http.SetCookie(w, &http.Cookie{Name: CookieName, Value: res.Token, Path: "/", Expires: res.Expires,
-		HttpOnly: true, Secure: s.cfg.CookieSecure, SameSite: http.SameSiteStrictMode})
+	s.limit.reset(in.Name)
+	s.setSession(w, res)
 	s.cfg.Logger.Info("gofbpstore: login", "name", res.User.Name)
+	writeJSON(w, res.User)
+}
+
+// PasswordRequest is the body of POST /api/password.
+type PasswordRequest struct {
+	Password    string `json:"password"`
+	NewPassword string `json:"new_password"`
+}
+
+// password runs the Network password for the logged-in user. It ends all
+// sessions of the user and sets the cookie of a new one.
+func (s *Server) password(w http.ResponseWriter, r *http.Request) {
+	var req PasswordRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid request", http.StatusBadRequest)
+		return
+	}
+	name := user(r).Name
+	if s.throttled(w, name) {
+		return
+	}
+	outport, p, err := s.cfg.Password.Call(r.Context(), fbp.In,
+		users.PasswordInput{Name: name, Password: req.Password, NewPassword: req.NewPassword})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if outport == fbp.Error {
+		msg := flow.ErrorMessage(p)
+		s.cfg.Logger.Info("gofbpstore: password change failed", "name", name, "error", msg)
+		http.Error(w, msg, http.StatusBadRequest)
+		return
+	}
+	res, err := fbp.DataAs[users.LoginResult](p)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	s.limit.reset(name)
+	s.setSession(w, res)
+	s.cfg.Logger.Info("gofbpstore: password changed", "name", name)
 	writeJSON(w, res.User)
 }
 

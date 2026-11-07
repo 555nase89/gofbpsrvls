@@ -61,3 +61,29 @@ func Useradmin(st *store.Store) (*fbp.Network, error) {
 		n.ConnectOut("deleteuser", fbp.Error, fbp.Error),
 	)
 }
+
+// Password changes the password of the user of a PasswordInput after checking
+// its current one, ends all its sessions and creates a new one; Success
+// carries a LoginResult. A wrong current password leaves through Error with
+// the message of ErrPassword.
+func Password(st *store.Store) (*fbp.Network, error) {
+	n := &fbp.Network{Name: "password", Description: "changes the own password and creates a new session"}
+	return n, errors.Join(
+		n.Add("checknewpassword", CheckNewPassword()),
+		n.Add("verifypassword", VerifyPassword(st)),
+		n.Add("hashpassword", HashPassword()),
+		n.Add("setpassword", SetPassword(st)),
+		n.Add("createsession", CreateSession(st)),
+		n.ConnectIn("checknewpassword"),
+		n.Connect("checknewpassword", fbp.Success, "verifypassword"),
+		n.Connect("verifypassword", fbp.Success, "hashpassword"),
+		n.Connect("hashpassword", fbp.Success, "setpassword"),
+		n.Connect("setpassword", fbp.Success, "createsession"),
+		n.ConnectOut("createsession", fbp.Success, fbp.Success),
+		n.ConnectOut("checknewpassword", fbp.Error, fbp.Error),
+		n.ConnectOut("verifypassword", fbp.Error, fbp.Error),
+		n.ConnectOut("hashpassword", fbp.Error, fbp.Error),
+		n.ConnectOut("setpassword", fbp.Error, fbp.Error),
+		n.ConnectOut("createsession", fbp.Error, fbp.Error),
+	)
+}

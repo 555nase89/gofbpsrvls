@@ -395,6 +395,28 @@ func (s *Store) UpdateUser(ctx context.Context, name, pwHash, role string) error
 	return tx.Commit()
 }
 
+// SetPassword sets the password hash of the user called name and ends all
+// its sessions; unlike UpdateUser it leaves the role alone, so it cannot undo
+// a concurrent role change.
+func (s *Store) SetPassword(ctx context.Context, name, pwHash string) error {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	res, err := tx.ExecContext(ctx, `UPDATE users SET pw_hash = ? WHERE name = ?`, pwHash, name)
+	if err != nil {
+		return err
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return ErrNotFound
+	}
+	if _, err := tx.ExecContext(ctx, `DELETE FROM sessions WHERE user_id = (SELECT id FROM users WHERE name = ?)`, name); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
 // DeleteUser deletes the user called name and its sessions. Deleting the
 // last admin fails with ErrLastAdmin.
 func (s *Store) DeleteUser(ctx context.Context, name string) error {

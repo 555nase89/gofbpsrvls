@@ -86,6 +86,11 @@ func run(path, addUser, role string) error {
 		return err
 	}
 	defer login.Stop()
+	password, err := startRunner(ctx, logger)(users.Password(st))
+	if err != nil {
+		return err
+	}
+	defer password.Stop()
 	rec, err := startRunner(ctx, logger)(record.Record(st))
 	if err != nil {
 		return err
@@ -106,7 +111,7 @@ func run(path, addUser, role string) error {
 	go pruneEvery(ctx, prune, retention, time.Hour, logger)
 
 	srv := &http.Server{Addr: cfg.Listen,
-		Handler: storeweb.New(storeweb.Config{NC: nc, Store: st, Login: login, Useradmin: useradmin,
+		Handler: storeweb.New(storeweb.Config{NC: nc, Store: st, Login: login, Useradmin: useradmin, Password: password,
 			Logger: logger, CookieSecure: cfg.CookieSecure}),
 		// Request contexts end with ctx, so open streams do not hold up the shutdown.
 		BaseContext: func(net.Listener) context.Context { return ctx }}

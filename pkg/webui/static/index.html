@@ -12,6 +12,7 @@
   <span id="status" class="muted"></span>
   <button id="refresh" type="button">Refresh</button>
   <span id="me" class="muted" hidden></span>
+  <button id="password-btn" type="button" hidden>Password</button>
   <button id="users-btn" type="button" hidden>Users</button>
   <button id="logout" type="button" hidden>Logout</button>
 </header>
@@ -22,6 +23,21 @@
     <label>Password <input id="login-password" type="password" autocomplete="current-password" required></label>
     <p id="login-error" class="warn" hidden></p>
     <button type="submit">Login</button>
+  </form>
+</div>
+<div id="password" class="page" hidden>
+  <form id="password-form" class="card">
+    <h2>Change password</h2>
+    <label>Current password <input id="pw-current" type="password" autocomplete="current-password" required></label>
+    <label>New password <input id="pw-new" type="password" autocomplete="new-password" minlength="10" required></label>
+    <label>Repeat new password <input id="pw-repeat" type="password" autocomplete="new-password" minlength="10" required></label>
+    <p class="muted">At least 10 characters. Other browsers logged in as you are logged out.</p>
+    <p id="pw-error" class="warn" hidden></p>
+    <p id="pw-done" hidden>Password changed.</p>
+    <div class="toolbar">
+      <button type="submit">Change</button>
+      <button id="password-close" type="button">Back to Networks</button>
+    </div>
   </form>
 </div>
 <div id="admin" class="page" hidden>

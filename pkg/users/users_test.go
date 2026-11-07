@@ -115,6 +115,46 @@ func TestUseradminAndLogin(t *testing.T) {
 	}
 }
 
+func TestPassword(t *testing.T) {
+	st := openStore(t)
+	start := starter(t)
+	login, admin, password := start(Login(st)), start(Useradmin(st)), start(Password(st))
+	ctx := context.Background()
+	in := UserInput{Action: ActionCreate, Name: "vera", Password: "0123456789", Role: store.RoleViewer}
+	admin.Run(t, js(t, in)).Want(t, fbptest.Outputs{fbp.Success: {js(t, UserResult{Action: in.Action, Name: in.Name, Role: in.Role})}})
+	old := loginToken(t, login, LoginInput{Name: "vera", Password: "0123456789"}, store.RoleViewer)
+
+	for _, c := range []struct {
+		in         PasswordInput
+		node, want string
+	}{
+		{PasswordInput{Name: "vera", Password: "0123456789", NewPassword: "short"}, "checknewpassword", "password must have at least 10 characters"},
+		{PasswordInput{Name: "vera", Password: "0123456789", NewPassword: "0123456789"}, "checknewpassword", "new password must differ from the current one"},
+		{PasswordInput{Name: "vera", Password: "wrong-password", NewPassword: "new-password"}, "verifypassword", ErrPassword.Error()},
+	} {
+		password.Run(t, js(t, c.in)).WantError(t, c.node, c.want)
+	}
+
+	res := password.Run(t, js(t, PasswordInput{Name: "vera", Password: "0123456789", NewPassword: "new-password"}))
+	out := res.Outputs[fbp.Success]
+	if len(out) != 1 || len(res.Outputs) != 1 {
+		t.Fatalf("password: got %s", res)
+	}
+	lr, err := fbp.DataAs[LoginResult](fbp.Packet{Data: out[0]})
+	if err != nil || lr.Token == "" || lr.User.Name != "vera" || lr.User.Role != store.RoleViewer {
+		t.Fatalf("password: got %+v, %v", lr, err)
+	}
+	// The old session ends, the new one is valid, and only the new password logs in.
+	if _, err := st.SessionUser(ctx, old); err == nil {
+		t.Fatal("old session kept after password change")
+	}
+	if u, err := st.SessionUser(ctx, lr.Token); err != nil || u.Name != "vera" {
+		t.Fatalf("new session: %+v %v", u, err)
+	}
+	login.Run(t, js(t, LoginInput{Name: "vera", Password: "0123456789"})).WantError(t, "", ErrLogin.Error())
+	loginToken(t, login, LoginInput{Name: "vera", Password: "new-password"}, store.RoleViewer)
+}
+
 // loginToken runs in through login, wants exactly one LoginResult with role
 // on Success and returns its token.
 func loginToken(t *testing.T, login *fbptest.Instance, in LoginInput, role string) string {

@@ -37,7 +37,7 @@ TLS and set `cookie_secure`. Backup: copy the `db` file while gofbpstore is stop
 ```
 NATS ── record.Collector ──▶ Network record ──▶ SQLite ◀── storeweb (HTTP) ◀── browser
                               Network prune  ──▶   ▲
-                              Networks login, useradmin ◀── storeweb
+                              Networks login, password, useradmin ◀── storeweb
 ```
 
 Everything that **writes** runs as a goFBP Network in-process (`pkg/flow.Runner`); reading
@@ -48,8 +48,8 @@ Everything that **writes** runs as a goFBP Network in-process (`pkg/flow.Runner`
 | `pkg/store` | SQLite (`modernc.org/sqlite`, no CGO). Tables `events`, `logs` (`UNIQUE(service, seq)`, so a Log history recorded twice gives no duplicates; IDs of both use `AUTOINCREMENT` and are never reused after pruning, so streams reading `id > last` see every new row; `Open` rebuilds tables of older files that lack it), `users`, `sessions` (only the SHA-256 of a token is stored) |
 | `pkg/flow` | `Runner`: an Instance of a Network with `Send` (fire and forget) and `Call` (wait for the first Packet of the Run, by Run ID; `ErrNoResult` if the Run ends without one). Error Packets nobody waits for are logged with their message only, never their input (it may hold a password) |
 | `pkg/record` | Bricks and the Networks `record` and `prune`; `Collector`: every 10 s `discover.List`, per new Network a subscription on its Trace subject and on `LogSubject(base, "*")`, per new Service a request for its Log history (asked again on the next scan after a timeout; a Service without one is skipped); every message goes into the Network `record` |
-| `pkg/users` | Bricks and the Networks `login` and `useradmin` (bcrypt, sessions of 12 h) |
-| `pkg/storeweb` | HTTP server, see below |
+| `pkg/users` | Bricks and the Networks `login`, `password` and `useradmin` (bcrypt, sessions of 12 h) |
+| `pkg/storeweb` | HTTP server, see below; limits the password attempts per user name |
 | `pkg/webui` | Pages shared with gofbpsrvls |
 
 ### Networks
@@ -59,6 +59,7 @@ Everything that **writes** runs as a goFBP Network in-process (`pkg/flow.Runner`
 | `record` | [record.svg](../pkg/record/record.svg) | `In` (`{base, event}`) → `checkevent` → `storeevent`; `Log` (`{base, log}`) → `checklog` → `storelog` |
 | `prune` | [prune.svg](../pkg/record/prune.svg) | `{before}` fans out to `pruneevents`, `prunelogs`, `prunesessions` |
 | `login` | [login.svg](../pkg/users/login.svg) | `{name, password}` → `finduser` → `checkpassword` → `createsession` → `{token, expires, user}`. Unknown name and wrong password give the same error and take the same time (bcrypt against a dummy hash) |
+| `password` | [password.svg](../pkg/users/password.svg) | `{name, password, new_password}` → `checknewpassword` → `verifypassword` → `hashpassword` → `setpassword` → `createsession` → `{token, expires, user}`. `name` is the session's user; `setpassword` ends all sessions of the user (only the password changes, never the role), `createsession` gives the caller a new one |
 | `useradmin` | [useradmin.svg](../pkg/users/useradmin.svg) | `{action, name, password, role}` → `routeaction` → `Create`: `checknewuser` → `hashnew` → `insertuser`; `Update`: `checkupdate` → `hashupdate` → `updateuser`; `Delete`: `deleteuser` |
 
 Rules of `useradmin`: name not empty and without surrounding white space, password at least 10
@@ -67,12 +68,24 @@ characters, role `admin` or `viewer`; the last admin can be neither demoted nor 
 change (`store.ErrLastAdmin`), so concurrent changes cannot remove the last admin either. A new
 password and deleting a user end that user's sessions.
 
+### Password attempts
+
+`storeweb` allows each user name 5 password attempts (login or own password change) within 15
+minutes (`Config.LoginAttempts`, `Config.LoginWindow`). An attempt counts when it starts, so
+parallel requests cannot pass the limit together; a successful one forgets the earlier attempts of
+that name. Beyond the limit the request is answered 429 with `Retry-After` without running the
+Network, also with the right password. The counters are kept in memory per process (lost on
+restart) and count per name, not per client: behind a reverse proxy every client has the proxy's
+address. Someone guessing can thus lock out a user for up to 15 minutes; the limit makes guessing
+a password of 10 characters impractical.
+
 ## Roles
 
 | | viewer | admin |
 |---|---|---|
 | See Networks, Services, Events, log records | ✓ | ✓ |
 | Switch trace | | ✓ |
+| Change own password | ✓ | ✓ |
 | Manage users | | ✓ |
 
 ## HTTP API
@@ -84,7 +97,8 @@ other sites from sending forged requests.
 
 | Route | Role | Description |
 |-------|------|-------------|
-| `POST /api/login` | – | `{name, password}` → user, sets the cookie; 401 on wrong name or password |
+| `POST /api/login` | – | `{name, password}` → user, sets the cookie; 401 on wrong name or password, 429 after too many attempts |
+| `POST /api/password` | any | `{password, new_password}`: changes the own password, ends all sessions of the user and sets the cookie of a new one → user; 400 with the message if a rule fails or the current password is wrong, 429 after too many attempts |
 | `POST /api/logout` | – | ends the session, clears the cookie |
 | `GET /api/me` | any | the logged-in user. gofbpsrvls has no such route (404), which is how the shared pages tell the two apart |
 | `GET /api/networks` | any | running Networks (discovery, `running: true`) and Networks only found in the store (`running: false`, no Services) |
@@ -99,6 +113,7 @@ other sites from sending forged requests.
 
 The pages are those of gofbpsrvls (`pkg/webui`). With gofbpstore they additionally show:
 - a login page, the user and role in the header and a Logout button;
+- a **Password** page (`#password`) for every user: current password and the new one twice;
 - for admins a **Users** page (`#users`): change role, set a password, delete, create;
 - Events also while trace is off (from the store) with a hint that none are recorded then;
 - Networks without running Services greyed out with `stopped`, data from the store only;
