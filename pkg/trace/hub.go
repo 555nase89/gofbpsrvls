@@ -6,6 +6,7 @@ package trace
 
 import (
 	"sync"
+	"time"
 
 	"github.com/nats-io/nats.go"
 )
@@ -17,15 +18,21 @@ const (
 	// DefaultBuffer is the channel size per watcher. A watcher that falls
 	// further behind loses messages instead of blocking the others.
 	DefaultBuffer = 256
+	// DefaultLinger is how long a subject stays subscribed after its last
+	// watcher has gone, so a browser coming back (reload, switching between
+	// Networks) still finds the recent messages, including those that came
+	// in between.
+	DefaultLinger = 10 * time.Minute
 )
 
 // Hub holds one NATS subscription per watched subject, from the first
-// watcher of a subject until the last one has gone. Messages are passed on
-// as raw data, e.g. the JSON of service.EventData.
+// watcher of a subject until linger after the last one has gone. Messages
+// are passed on as raw data, e.g. the JSON of service.EventData.
 type Hub struct {
 	nc      *nats.Conn
 	history int
 	buffer  int
+	linger  time.Duration
 
 	mu       sync.Mutex
 	subjects map[string]*subject
@@ -36,11 +43,12 @@ type subject struct {
 	watchers map[chan []byte]struct{}
 	recent   [][]byte // ring of the last messages, oldest at next once full
 	next     int
+	idle     *time.Timer // ends the subscription while there is no watcher
 }
 
 // NewHub returns a Hub receiving messages via nc.
 func NewHub(nc *nats.Conn) *Hub {
-	return &Hub{nc: nc, history: DefaultHistory, buffer: DefaultBuffer, subjects: map[string]*subject{}}
+	return &Hub{nc: nc, history: DefaultHistory, buffer: DefaultBuffer, linger: DefaultLinger, subjects: map[string]*subject{}}
 }
 
 // Watch returns a channel with the recent and all further messages on
@@ -58,6 +66,10 @@ func (h *Hub) Watch(subj string) (msgs <-chan []byte, stop func(), err error) {
 		}
 		h.subjects[subj] = bs
 	}
+	if bs.idle != nil {
+		bs.idle.Stop()
+		bs.idle = nil
+	}
 	recent := bs.ordered()
 	ch := make(chan []byte, max(h.buffer, len(recent)))
 	for _, e := range recent {
@@ -73,6 +85,29 @@ func (h *Hub) unwatch(subj string, bs *subject, ch chan []byte) {
 	delete(bs.watchers, ch)
 	close(ch)
 	if len(bs.watchers) == 0 {
+		bs.idle = time.AfterFunc(h.linger, func() { h.expire(subj, bs) })
+	}
+}
+
+// expire ends the subscription of bs unless a watcher came back meanwhile.
+func (h *Hub) expire(subj string, bs *subject) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if len(bs.watchers) > 0 || h.subjects[subj] != bs {
+		return
+	}
+	bs.sub.Unsubscribe()
+	delete(h.subjects, subj)
+}
+
+// Close ends all subscriptions. Watchers must have stopped before.
+func (h *Hub) Close() {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	for subj, bs := range h.subjects {
+		if bs.idle != nil {
+			bs.idle.Stop()
+		}
 		bs.sub.Unsubscribe()
 		delete(h.subjects, subj)
 	}

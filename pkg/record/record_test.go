@@ -256,4 +256,47 @@ func TestCollectorRetriesHistory(t *testing.T) {
 	if n := requests.Load(); n != 2 {
 		t.Fatalf("%d history requests, want 2", n)
 	}
+
+	// Once the Service is gone for forgetAfter, the Collector forgets it and
+	// its Network; coming back, it is asked for its history again.
+	defer func(d time.Duration) { forgetAfter = d }(forgetAfter)
+	forgetAfter = 0
+	svc.Stop()
+	if err := c.Scan(ctx); err != nil {
+		t.Fatal(err)
+	}
+	c.mu.Lock()
+	networks, services := len(c.networks), len(c.services)
+	c.mu.Unlock()
+	if networks != 0 || services != 0 {
+		t.Fatalf("kept %d networks, %d services", networks, services)
+	}
+	forgetAfter = time.Minute
+	svc, err = micro.AddService(nc, micro.Config{Name: "n", Version: "1.0.0",
+		Metadata: map[string]string{"base": base, "network": "n"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { svc.Stop() })
+	id = svc.Info().ID
+	answered := make(chan struct{}, 1)
+	sub2, err := nc.Subscribe(service.LogHistorySubject(base, id), func(msg *nats.Msg) {
+		msg.Respond([]byte("[]"))
+		answered <- struct{}{}
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { sub2.Unsubscribe() })
+	if err := c.Scan(ctx); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case <-answered:
+	default:
+		t.Fatal("history of the returning Service not asked")
+	}
+	if len(c.networks) != 1 {
+		t.Fatalf("network not watched again: %v", c.networks)
+	}
 }

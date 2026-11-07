@@ -7,6 +7,7 @@ require (
 	github.com/nats-io/nats-server/v2 v2.12.4
 	github.com/nats-io/nats.go v1.48.0
 	golang.org/x/crypto v0.47.0
+	golang.org/x/term v0.47.0
 	modernc.org/sqlite v1.61.1
 )
 

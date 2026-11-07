@@ -16,7 +16,7 @@ recording, multi-user sibling of the local `gofbpsrvls` (see [concept.md](concep
 cd cmd/gofbpstore
 cp example.json config.json                 # natscon, listen, db, retention, cookie_secure
 /snap/go/current/bin/go build -o gofbpstore .
-./gofbpstore -config config.json -adduser admin -role admin   # first admin; password from stdin
+./gofbpstore -config config.json -adduser admin -role admin   # first admin; asks for the password (no echo) or reads it from a pipe
 ./gofbpstore -config config.json
 ```
 
@@ -27,6 +27,9 @@ cp example.json config.json                 # natscon, listen, db, retention, co
 | `db` | `gofbpstore.db` | SQLite file (WAL mode: `-wal` and `-shm` files next to it) |
 | `retention` | `720h` | how long Events and log records are kept (Go duration) |
 | `cookie_secure` | `false` | mark the session cookie `Secure`; set it behind HTTPS |
+
+On SIGINT/SIGTERM gofbpstore ends open streams, waits up to 5 s for running requests and then for
+the Collector and pruning to stop before it closes the database.
 
 gofbpstore speaks plain HTTP. To reach it from other machines, put it behind a reverse proxy with
 TLS and set `cookie_secure`. Backup: copy the `db` file while gofbpstore is stopped (or use
@@ -45,9 +48,9 @@ Everything that **writes** runs as a goFBP Network in-process (`pkg/flow.Runner`
 
 | Package | Role |
 |---------|------|
-| `pkg/store` | SQLite (`modernc.org/sqlite`, no CGO). Tables `events`, `logs` (`UNIQUE(service, seq)`, so a Log history recorded twice gives no duplicates; IDs of both use `AUTOINCREMENT` and are never reused after pruning, so streams reading `id > last` see every new row; `Open` rebuilds tables of older files that lack it), `users`, `sessions` (only the SHA-256 of a token is stored) |
+| `pkg/store` | SQLite (`modernc.org/sqlite`, no CGO). Tables `events`, `logs` (`UNIQUE(service, seq)`, so a Log history recorded twice gives no duplicates; IDs of both use `AUTOINCREMENT` and are never reused after pruning, so streams reading `id > last` see every new row; `Open` rebuilds tables of older files that lack it; the path may contain `?`, `#` and `%`), `users`, `sessions` (only the SHA-256 of a token is stored) |
 | `pkg/flow` | `Runner`: an Instance of a Network with `Send` (fire and forget) and `Call` (wait for the first Packet of the Run, by Run ID; `ErrNoResult` if the Run ends without one). Error Packets nobody waits for are logged with their message only, never their input (it may hold a password) |
-| `pkg/record` | Bricks and the Networks `record` and `prune`; `Collector`: every 10 s `discover.List`, per new Network a subscription on its Trace subject and on `LogSubject(base, "*")`, per new Service a request for its Log history (asked again on the next scan after a timeout; a Service without one is skipped); every message goes into the Network `record` |
+| `pkg/record` | Bricks and the Networks `record` and `prune`; `Collector`: every 10 s `discover.List`, per new Network a subscription on its Trace subject and on `LogSubject(base, "*")`, per new Service a request for its Log history (asked again on the next scan after a timeout; a Service without one is skipped); every message goes into the Network `record`. Networks and Services not discovered for 5 min are forgotten: the Network's subscriptions end, and a Service coming back is asked for its history again |
 | `pkg/users` | Bricks and the Networks `login`, `password` and `useradmin` (bcrypt, sessions of 12 h) |
 | `pkg/storeweb` | HTTP server, see below; limits the password attempts per user name |
 | `pkg/webui` | Pages shared with gofbpsrvls |
@@ -117,5 +120,6 @@ The pages are those of gofbpsrvls (`pkg/webui`). With gofbpstore they additional
 - for admins a **Users** page (`#users`): change role, set a password, delete, create;
 - Events also while trace is off (from the store) with a hint that none are recorded then;
 - Networks without running Services greyed out with `stopped`, data from the store only;
-- **Load older** below Events and Logs.
+- **Load older** below Events and Logs; it disappears once there is nothing older, until another
+  Network is selected or the stream restarts. A page arriving after the Network was switched is dropped.
 For viewers the Trace switch is disabled.

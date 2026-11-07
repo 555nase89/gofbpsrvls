@@ -37,7 +37,7 @@ gofbpsrvls has no login and must not be exposed beyond `127.0.0.1`.
 cd cmd/gofbpstore
 cp example.json config.json
 go build -o gofbpstore .
-./gofbpstore -config config.json -adduser admin -role admin   # first admin, password from stdin
+./gofbpstore -config config.json -adduser admin -role admin   # first admin, asks for the password
 ./gofbpstore -config config.json
 ```
 
