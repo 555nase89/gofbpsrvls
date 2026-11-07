@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"net/http"
 	"slices"
+	"sync"
 	"time"
 
 	"gofbpsrvls/pkg/discover"
@@ -23,7 +24,8 @@ import (
 // flushTimeout limits the wait for the NATS server to confirm a publish.
 const flushTimeout = 2 * time.Second
 
-// historyTimeout limits the wait for the Log history of one Service.
+// historyTimeout limits the wait for the Log histories; all Services are
+// asked at once.
 const historyTimeout = time.Second
 
 // Server is the HTTP handler of gofbpSRVLS.
@@ -133,22 +135,25 @@ func (s *Server) logs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer stop()
-	var history []service.LogData
-	for _, svc := range n.Services {
-		ctx, cancel := context.WithTimeout(r.Context(), historyTimeout)
-		msg, err := s.nc.RequestWithContext(ctx, service.LogHistorySubject(base, svc.ID), nil)
-		cancel()
-		var h []service.LogData
-		if err == nil {
-			err = json.Unmarshal(msg.Data, &h)
-		}
-		if err != nil {
-			// E.g. a Service built with an older goFBP: live records only.
-			s.logger.Debug("gofbpsrvls: no log history", "base", base, "service", svc.ID, "error", err)
-			continue
-		}
-		history = append(history, h...)
+	histories := make([][]service.LogData, len(n.Services))
+	ctx, cancel := context.WithTimeout(r.Context(), historyTimeout)
+	var wg sync.WaitGroup
+	for i, svc := range n.Services {
+		wg.Go(func() {
+			msg, err := s.nc.RequestWithContext(ctx, service.LogHistorySubject(base, svc.ID), nil)
+			if err == nil {
+				err = json.Unmarshal(msg.Data, &histories[i])
+			}
+			if err != nil {
+				// E.g. a Service built with an older goFBP: live records only.
+				histories[i] = nil
+				s.logger.Debug("gofbpsrvls: no log history", "base", base, "service", svc.ID, "error", err)
+			}
+		})
 	}
+	wg.Wait()
+	cancel()
+	history := slices.Concat(histories...)
 	slices.SortStableFunc(history, func(a, b service.LogData) int { return a.Time.Compare(b.Time) })
 	seen := map[string]uint64{} // highest Seq sent per Service
 	first := make([][]byte, 0, len(history))

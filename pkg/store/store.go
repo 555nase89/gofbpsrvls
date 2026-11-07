@@ -89,9 +89,13 @@ type Store struct {
 	db *sql.DB
 }
 
+// uriPath escapes the characters of a file path that end or change the path
+// part of an SQLite URI filename; SQLite decodes them again.
+var uriPath = strings.NewReplacer("%", "%25", "?", "%3f", "#", "%23")
+
 // Open opens or creates the database file at path.
 func Open(path string) (*Store, error) {
-	dsn := fmt.Sprintf("file:%s?_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)&_pragma=foreign_keys(1)&_pragma=synchronous(NORMAL)", path)
+	dsn := fmt.Sprintf("file:%s?_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)&_pragma=foreign_keys(1)&_pragma=synchronous(NORMAL)", uriPath.Replace(path))
 	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		return nil, err

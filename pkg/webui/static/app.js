@@ -19,6 +19,7 @@ let logSource = null; // EventSource of the logs of the selected Network
 let logs = []; // LogData of the selected Network, oldest first
 let logsPaused = false;
 let me = null; // logged-in user of gofbpstore; null in gofbpsrvls
+let noOlder = { events: false, logs: false }; // "Load older" found nothing more
 let refreshTimer = null;
 
 function el(tag, text, cls) {
@@ -157,20 +158,28 @@ function renderDetail(n) {
   $("trace-off").textContent = me
     ? "Trace is off: no new Events are recorded."
     : "Trace is off. Switch it on to see the Events of this Network.";
-  $("older").hidden = $("log-older").hidden = !me;
   if (showEvents) startStream(n.base); else stopStream();
   if (tab === "logs") startLogs(n.base); else stopLogs();
+  showOlder();
+}
+
+// showOlder shows the "Load older" buttons in gofbpstore until they found
+// no older rows for the current stream.
+function showOlder() {
+  $("older").hidden = !me || noOlder.events;
+  $("log-older").hidden = !me || noOlder.logs;
 }
 
 function startStream(base) {
   if (source && source.base === base) return;
   stopStream();
   events = [];
+  noOlder.events = false;
   renderEvents();
   source = new EventSource("api/networks/events?base=" + encodeURIComponent(base));
   source.base = base;
   // After a reconnect the server sends its recent Events again.
-  source.onopen = () => { events = []; scheduleRender(); };
+  source.onopen = () => { events = []; noOlder.events = false; showOlder(); scheduleRender(); };
   source.onmessage = (m) => {
     events.push(JSON.parse(m.data));
     if (events.length > MAX_EVENTS) events.splice(0, events.length - MAX_EVENTS);
@@ -201,12 +210,13 @@ function startLogs(base) {
   if (logSource && logSource.base === base) return;
   stopLogs();
   logs = [];
+  noOlder.logs = false;
   renderLogs();
   // The server sends the Log history of every Service first, then live records.
   logSource = new EventSource("api/networks/logs?base=" + encodeURIComponent(base));
   logSource.base = base;
   // After a reconnect the server sends the history again.
-  logSource.onopen = () => { logs = []; scheduleLogs(); };
+  logSource.onopen = () => { logs = []; noOlder.logs = false; showOlder(); scheduleLogs(); };
   logSource.onmessage = (m) => {
     logs.push(JSON.parse(m.data));
     if (logs.length > MAX_LOGS) logs.splice(0, logs.length - MAX_LOGS);
@@ -326,19 +336,31 @@ $("d-trace").onchange = async (ev) => {
   }
   refresh();
 };
-// loadOlder prepends the page before the oldest shown row of list (events
-// or logs) from gofbpstore and returns the new list.
-async function loadOlder(kind, list, button) {
-  if (!list.length) return list;
-  const r = await fetch("api/networks/" + kind + "?base=" + encodeURIComponent(selected) + "&before=" + list[0].id);
-  if (r.status === 401) { loggedOut(); return list; }
-  if (!r.ok) { $("status").textContent = "error: " + await r.text(); return list; }
+// loadOlder fetches the page before the oldest shown row of kind ("events"
+// or "logs") from gofbpstore and returns it, or null if there is nothing to
+// add: also when another Network was selected or the list was restarted or
+// trimmed while waiting, as the page would no longer fit in front of it.
+async function loadOlder(kind) {
+  const list = () => (kind === "events" ? events : logs);
+  const base = selected;
+  const first = list()[0];
+  if (!first) return null;
+  const r = await fetch("api/networks/" + kind + "?base=" + encodeURIComponent(base) + "&before=" + first.id);
+  if (r.status === 401) { loggedOut(); return null; }
+  if (!r.ok) { $("status").textContent = "error: " + await r.text(); return null; }
   const older = await r.json();
-  if (!older.length) button.hidden = true;
-  return older.concat(list);
+  if (selected !== base || list()[0] !== first) return null;
+  if (!older.length) { noOlder[kind] = true; showOlder(); return null; }
+  return older;
 }
-$("older").onclick = async () => { events = await loadOlder("events", events, $("older")); renderEvents(); };
-$("log-older").onclick = async () => { logs = await loadOlder("logs", logs, $("log-older")); renderLogs(); };
+$("older").onclick = async () => {
+  const older = await loadOlder("events");
+  if (older) { events = older.concat(events); renderEvents(); }
+};
+$("log-older").onclick = async () => {
+  const older = await loadOlder("logs");
+  if (older) { logs = older.concat(logs); renderLogs(); }
+};
 
 $("login-form").onsubmit = async (ev) => {
   ev.preventDefault();

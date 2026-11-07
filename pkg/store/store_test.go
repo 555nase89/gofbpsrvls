@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -22,6 +23,27 @@ func open(t *testing.T) *Store {
 	}
 	t.Cleanup(func() { s.Close() })
 	return s
+}
+
+// Characters with a meaning in an SQLite URI must reach the file system as
+// they are.
+func TestOpenSpecialPath(t *testing.T) {
+	dir := filepath.Join(t.TempDir(), "a?b#c%41")
+	if err := os.Mkdir(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(dir, "x?y.db")
+	s, err := Open(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+	if err := s.InsertUser(context.Background(), "anna", "h", RoleAdmin); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(path); err != nil {
+		t.Fatalf("database not at %s: %v", path, err)
+	}
 }
 
 func TestEventsPaging(t *testing.T) {

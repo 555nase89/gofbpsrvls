@@ -19,6 +19,7 @@ import (
 
 	"github.com/nats-io/nats-server/v2/server"
 	"github.com/nats-io/nats.go"
+	"github.com/nats-io/nats.go/micro"
 )
 
 const timeout = 2 * time.Second
@@ -246,6 +247,42 @@ func TestLogs(t *testing.T) {
 	svcs[1].Logger().Info("live")
 	if d := next(); d.Message != "live" || d.Service != svcs[1].ID() {
 		t.Fatalf("got %+v", d)
+	}
+}
+
+// Services that do not answer for their Log history are waited for together,
+// not one after the other.
+func TestLogsHistoryParallel(t *testing.T) {
+	nc, ts := newServer(t)
+	const base = "fbp.test.n"
+	for range 3 {
+		// Looks like a goFBP Service to discover.List, but never answers.
+		svc, err := micro.AddService(nc, micro.Config{Name: "n", Version: "1.0.0",
+			Metadata: map[string]string{"base": base, "network": "n"}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() { svc.Stop() })
+		sub, err := nc.Subscribe(service.LogHistorySubject(base, svc.Info().ID), func(*nats.Msg) {})
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() { sub.Unsubscribe() })
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	start := time.Now()
+	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, ts.URL+"/api/networks/logs?base="+base, nil)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("status %d", resp.StatusCode)
+	}
+	if d := time.Since(start); d > historyTimeout+time.Second {
+		t.Fatalf("stream opened after %s; histories asked one by one?", d)
 	}
 }
 

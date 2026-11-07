@@ -18,6 +18,7 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -29,6 +30,8 @@ import (
 
 	"github.com/555nase89/goFBP/pkg/fbp"
 	"github.com/555nase89/goFBP/pkg/natscon"
+
+	"golang.org/x/term"
 )
 
 type config struct {
@@ -107,22 +110,31 @@ func run(path, addUser, role string) error {
 		return err
 	}
 	defer nc.Close()
-	go record.NewCollector(nc, rec, logger).Run(ctx, record.DefaultInterval)
-	go pruneEvery(ctx, prune, retention, time.Hour, logger)
+	// The deferred Stops and st.Close run only after wg.Wait: until then the
+	// Collector, the pruning and the HTTP handlers may still use them.
+	var wg sync.WaitGroup
+	wg.Go(func() { record.NewCollector(nc, rec, logger).Run(ctx, record.DefaultInterval) })
+	wg.Go(func() { pruneEvery(ctx, prune, retention, time.Hour, logger) })
 
 	srv := &http.Server{Addr: cfg.Listen,
 		Handler: storeweb.New(storeweb.Config{NC: nc, Store: st, Login: login, Useradmin: useradmin, Password: password,
 			Logger: logger, CookieSecure: cfg.CookieSecure}),
+		ReadHeaderTimeout: 10 * time.Second,
 		// Request contexts end with ctx, so open streams do not hold up the shutdown.
 		BaseContext: func(net.Listener) context.Context { return ctx }}
-	go func() {
+	// Shutdown returns once all handlers have finished; ListenAndServe
+	// returns as soon as it starts.
+	wg.Go(func() {
 		<-ctx.Done()
 		shutdown, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		srv.Shutdown(shutdown)
-	}()
+	})
 	logger.Info("gofbpstore: listening", "url", "http://"+cfg.Listen, "db", cfg.DB)
-	if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+	err = srv.ListenAndServe()
+	stop() // also when listening failed, so the goroutines end
+	wg.Wait()
+	if !errors.Is(err, http.ErrServerClosed) {
 		return err
 	}
 	return nil
@@ -142,12 +154,12 @@ func startRunner(ctx context.Context, logger *slog.Logger) func(*fbp.Network, er
 // createUser runs the Network useradmin for -adduser.
 func createUser(ctx context.Context, useradmin *flow.Runner, name, role string) error {
 	fmt.Fprintf(os.Stderr, "password for %s: ", name)
-	pw, err := bufio.NewReader(os.Stdin).ReadString('\n')
-	if err != nil && pw == "" {
+	pw, err := readPassword()
+	if err != nil {
 		return fmt.Errorf("read password: %w", err)
 	}
 	outport, p, err := useradmin.Call(ctx, fbp.In, users.UserInput{Action: users.ActionCreate, Name: name,
-		Password: strings.TrimRight(pw, "\r\n"), Role: role})
+		Password: pw, Role: role})
 	if err != nil {
 		return err
 	}
@@ -156,6 +168,19 @@ func createUser(ctx context.Context, useradmin *flow.Runner, name, role string) 
 	}
 	fmt.Fprintf(os.Stderr, "\nuser %s created with role %s\n", name, role)
 	return nil
+}
+
+// readPassword reads a line from stdin, without echo if it is a terminal.
+func readPassword() (string, error) {
+	if fd := int(os.Stdin.Fd()); term.IsTerminal(fd) {
+		pw, err := term.ReadPassword(fd)
+		return string(pw), err
+	}
+	pw, err := bufio.NewReader(os.Stdin).ReadString('\n')
+	if err != nil && pw == "" {
+		return "", err
+	}
+	return strings.TrimRight(pw, "\r\n"), nil
 }
 
 // pruneEvery sends the Network prune the retention limit at start and then

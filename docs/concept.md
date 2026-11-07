@@ -30,12 +30,14 @@ Open http://127.0.0.1:8080. The list refreshes every 5 s.
 | Receive log records | Subscribe to `service.LogSubject(base, "*")` (`service.LogData` JSON, all Services of the Network), then request `service.LogHistorySubject(base, id)` of every Service | `pkg/trace`, `pkg/web` |
 
 `pkg/trace.Hub` holds one NATS subscription per subject (Trace subject, Log subjects of a Network)
-while at least one browser watches it and fans the messages out to all of them. It keeps the last
-500 messages per subject, which a newly opened browser gets first. A browser that falls behind by more than 256 Events loses Events instead of
+while at least one browser watches it, and for 10 minutes after the last one has gone, and fans the
+messages out to all of them. It keeps the last 500 messages per subject, which a newly opened
+browser gets first, so a reload or switching to another Network and back within those 10 minutes
+loses no Events, also those that came in between. A browser that falls behind by more than 256 Events loses Events instead of
 slowing down the others. The browser itself keeps at most 2000 Events.
 
-For logs, the server subscribes first and then asks every Service for its Log history (the last
-500 records by default, kept by the Service itself). So the browser also gets records written
+For logs, the server subscribes first and then asks all Services at once for their Log history
+(the last 500 records by default, kept by the Service itself; at most 1 s wait in all). So the browser also gets records written
 before gofbpSRVLS started, e.g. `textservice started`. The history is sent sorted by time; live
 records whose `seq` was already sent for that Service are skipped. A Service built with an older
 goFBP has no Log history and shows live records only, if any. Records written before

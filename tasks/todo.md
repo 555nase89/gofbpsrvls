@@ -36,6 +36,15 @@
   429 with `Retry-After`, in memory); every user changes its own password via the new Network
   `password` (`POST /api/password`, Password page in the UI); it ends the user's other sessions
   (2026-11-07).
+- gofbpsrvls: `trace.Hub` keeps a subject subscribed for 10 min after the last browser left, so
+  the trace history survives a reload or switching Networks; Log histories are asked in parallel
+  (1 s in all instead of 1 s per Service) (2026-11-07).
+- Rest of the review (2026-10-31): gofbpstore shutdown waits for the HTTP handlers, Collector and
+  pruning before closing the store; `-adduser` reads the password without echo from a terminal;
+  `ReadHeaderTimeout` of 10 s in both programs; "Load older" stays hidden once nothing older is
+  left and drops a page that arrives after the Network was switched; the Collector forgets
+  Networks and Services not discovered for 5 min; `store.Open` escapes `%`, `?` and `#` in the
+  path (2026-11-07).
 
 ## Open
 - gofbpstore: no TLS of its own (reverse proxy). Streams poll SQLite every second per browser; fine
@@ -48,9 +57,4 @@
   mode, the narrow layout and many Events/records in a real browser.
 - automat-ai services do not call `slog.SetDefault(s.Logger())` yet, so only the records of the
   Service itself (not of `main` and the Bricks) reach the Logs tab.
-- Trace history is lost when the last browser closes the stream of a Network; keep it longer if needed.
-- From the review (2026-10-31), not fixed yet: gofbpstore shutdown does not wait for handlers,
-  Collector and pruning before closing the store; `-adduser` echoes a typed password; no
-  `ReadHeaderTimeout`; UI "older" button reappears on every refresh and `loadOlder` can prepend
-  rows of a previously selected Network; gofbpsrvls asks the Log histories one by one (1 s timeout
-  each); Collector maps never forget stopped Services; `store.Open` breaks on `?`/`#` in the path.
+- UI fixes of "Load older" only checked with `node --check`, not in a browser.

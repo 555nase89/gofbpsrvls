@@ -57,6 +57,7 @@ func run(path, listen string) error {
 	// Request contexts end with ctx, so open event streams do not hold up
 	// the shutdown.
 	srv := &http.Server{Addr: cfg.Listen, Handler: web.New(nc, 0, slog.Default()),
+		ReadHeaderTimeout: 10 * time.Second,
 		BaseContext: func(net.Listener) context.Context { return ctx }}
 	go func() {
 		<-ctx.Done()

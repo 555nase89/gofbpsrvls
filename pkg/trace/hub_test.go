@@ -92,8 +92,58 @@ func TestHubHistoryAndFanOut(t *testing.T) {
 	if _, ok := <-first; ok {
 		t.Fatal("channel open after stop")
 	}
+	h.Close()
 	if len(h.subjects) != 0 {
 		t.Fatalf("subscription kept: %v", h.subjects)
+	}
+}
+
+// Without watchers a subject keeps receiving for linger, so a watcher
+// coming back gets what was published in between.
+func TestHubLinger(t *testing.T) {
+	nc := connect(t)
+	h := NewHub(nc)
+	h.linger = 200 * time.Millisecond
+	subj := service.TraceSubject("fbp.a.b")
+	_, stop, err := h.Watch(subj)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := nc.Flush(); err != nil {
+		t.Fatal(err)
+	}
+	stop()
+	publish(t, nc, "fbp.a.b", "1")
+	ch, stop, err := h.Watch(subj)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := next(t, ch); got != "1" {
+		t.Fatalf("after coming back: got %s", got)
+	}
+	stop()
+	// The watch in between restarted the linger; after it the subject ends.
+	deadline := time.Now().Add(2 * time.Second)
+	for {
+		h.mu.Lock()
+		n := len(h.subjects)
+		h.mu.Unlock()
+		if n == 0 {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("subscription kept after linger")
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+	publish(t, nc, "fbp.a.b", "2")
+	ch, stop, err = h.Watch(subj)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer stop()
+	if len(ch) != 0 {
+		t.Fatalf("%d messages after linger, want none", len(ch))
 	}
 }
 
