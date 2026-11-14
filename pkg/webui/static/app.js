@@ -70,9 +70,16 @@ async function boot() {
   if (r.ok) {
     me = await r.json();
     $("me").textContent = me.name + " (" + me.role + ")";
-    if (location.hash === "#users" && me.role === "admin") return showUsers();
-    if (location.hash === "#password") return showPassword();
   }
+  route();
+}
+
+// route shows the page named by the URL hash: #users (admins only),
+// #password (gofbpstore only) or the Networks with the Events or Logs tab.
+function route() {
+  if (me && location.hash === "#users" && me.role === "admin") return showUsers();
+  if (me && location.hash === "#password") return showPassword();
+  showTab(location.hash === "#logs" ? "logs" : "events");
   startRefresh();
 }
 
@@ -163,11 +170,11 @@ function renderDetail(n) {
   showOlder();
 }
 
-// showOlder shows the "Load older" buttons in gofbpstore until they found
-// no older rows for the current stream.
+// showOlder shows the "Load older" buttons in gofbpstore while rows are
+// shown, until they found no older rows for the current stream.
 function showOlder() {
-  $("older").hidden = !me || noOlder.events;
-  $("log-older").hidden = !me || noOlder.logs;
+  $("older").hidden = !me || noOlder.events || !events.length;
+  $("log-older").hidden = !me || noOlder.logs || !logs.length;
 }
 
 function startStream(base) {
@@ -272,6 +279,7 @@ function renderLogs() {
   $("log-count").textContent = shown.length === logs.length
     ? logs.length + " records"
     : shown.length + " of " + logs.length + " records";
+  showOlder();
 }
 
 function showTab(name) {
@@ -320,6 +328,7 @@ function renderEvents() {
   $("count").textContent = shown.length === events.length
     ? events.length + " events"
     : shown.length + " of " + events.length + " events";
+  showOlder();
 }
 
 $("d-trace").onchange = async (ev) => {
@@ -498,5 +507,6 @@ $("log-pause").onclick = () => {
 };
 $("log-clear").onclick = () => { logs = []; renderLogs(); };
 
-if (location.hash === "#logs") showTab("logs");
+// Back, forward or an edited URL change only the hash; the login page stays.
+window.onhashchange = () => { if ($("login").hidden) route(); };
 boot();

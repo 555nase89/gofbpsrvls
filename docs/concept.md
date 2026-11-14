@@ -64,7 +64,8 @@ cannot publish on arbitrary subjects.
 - Left: all Networks with package path; a green `trace` badge when observing is on.
 - Right: the selected Network with its Inports and Outports, a table of its Services and the
   Trace switch.
-- Tabs **Events** and **Logs** below the Services; the tab is kept in the URL (`#logs`).
+- Tabs **Events** and **Logs** below the Services; the tab is kept in the URL (`#logs`). The page
+  follows the URL hash also without a reload (back, forward, an edited URL).
 - Events, with trace on: newest first (time, Service, kind, Run ID, Packet ID ← parent ID,
   node, port, data or error). Error Events are highlighted. The filter matches Run ID, node, port,
   kind, Service, error and data; clicking a Run ID filters by it. Pause stops redrawing, Clear empties
@@ -73,3 +74,5 @@ cannot publish on arbitrary subjects.
   attributes as `key=value`, newest first. A level selection hides lower levels (default Info),
   the filter matches Service ID, message and attributes; clicking a Service ID filters by it.
   The browser keeps at most 2000 records. Pause and Clear work as for Events.
+- Light and dark mode follow the system setting (also scrollbars and form controls). Below 760 px
+  the Network list moves above the detail, the header wraps and wide tables scroll sideways.
