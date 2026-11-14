@@ -1,4 +1,7 @@
 :root {
+  /* Native scrollbars and form controls follow the color scheme too. */
+  color-scheme: light dark;
+  scrollbar-color: var(--border) var(--bg);
   --bg: #f7f7f8;
   --panel: #ffffff;
   --text: #1d1d1f;
@@ -117,7 +120,10 @@ button:hover { border-color: var(--muted); }
 .older { margin-top: 8px; }
 nav li.stopped .name span:first-child { color: var(--muted); }
 @media (max-width: 760px) {
+  header { flex-wrap: wrap; gap: 8px 12px; }
+  header h1 { flex-basis: 100%; }
   main { grid-template-columns: 1fr; }
   nav { border-right: none; border-bottom: 1px solid var(--border); }
-  .services { display: block; overflow-x: auto; }
+  .services, .users { display: block; overflow-x: auto; }
+  .page { padding: 16px 8px; }
 }

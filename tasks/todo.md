@@ -46,15 +46,21 @@
   Networks and Services not discovered for 5 min; `store.Open` escapes `%`, `?` and `#` in the
   path (2026-11-07).
 
+- Browser check in Firefox (headless via geckodriver, light and dark mode, 1280 and 500 px wide,
+  2000 Events, two Services): Password page (mismatch, wrong current password, success, other
+  sessions logged out), viewer role (Trace switch disabled, no Users button, `#users` falls back to
+  the Networks), user administration (create, delete, last admin protected), "Load older" (pages of
+  500 until nothing older is left) all work in gofbpstore and gofbpsrvls. Fixed on the way: the page
+  now follows hash changes without a reload (back/forward, edited URL) and a viewer's `#users` no
+  longer stays in the URL; "Load older" stays hidden while no rows are shown; dark mode also
+  colours scrollbars and form controls (`color-scheme`, `scrollbar-color`); in the narrow layout the
+  header wraps and the Users table scrolls sideways instead of cutting off Save/Delete (2026-11-14).
+
 ## Open
 - gofbpstore: no TLS of its own (reverse proxy). Streams poll SQLite every second per browser; fine
   for a few users. The login limit counts per user name only (no per-client limit, since behind a
   proxy all clients share an address), so trying one password against many names is not slowed
   beyond bcrypt, and a guesser can lock a user out for 15 min.
-- Password page only checked via API tests and `node --check`, not in a browser.
-- Viewer role in the UI only checked via API tests, not in a browser.
-- UI checked in headless Firefox screenshots only (light mode, Events and Logs tab); check dark
-  mode, the narrow layout and many Events/records in a real browser.
+- UI checked in headless Firefox only; Chrome/Safari and a real phone not yet.
 - automat-ai services do not call `slog.SetDefault(s.Logger())` yet, so only the records of the
   Service itself (not of `main` and the Bricks) reach the Logs tab.
-- UI fixes of "Load older" only checked with `node --check`, not in a browser.

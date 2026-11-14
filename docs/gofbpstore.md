@@ -117,9 +117,10 @@ other sites from sending forged requests.
 The pages are those of gofbpsrvls (`pkg/webui`). With gofbpstore they additionally show:
 - a login page, the user and role in the header and a Logout button;
 - a **Password** page (`#password`) for every user: current password and the new one twice;
-- for admins a **Users** page (`#users`): change role, set a password, delete, create;
+- for admins a **Users** page (`#users`): change role, set a password, delete, create; for viewers
+  `#users` shows the Networks;
 - Events also while trace is off (from the store) with a hint that none are recorded then;
 - Networks without running Services greyed out with `stopped`, data from the store only;
-- **Load older** below Events and Logs; it disappears once there is nothing older, until another
+- **Load older** below Events and Logs while rows are shown; it disappears once there is nothing older, until another
   Network is selected or the stream restarts. A page arriving after the Network was switched is dropped.
 For viewers the Trace switch is disabled.
